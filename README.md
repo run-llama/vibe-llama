@@ -7,7 +7,7 @@ This command-line tool aims to add the relevant context as rules to any coding a
 1. You select a coding agent.
 2. You select the LlamaIndex service (such as LlamaCloud, the LlamaIndex framework or the Workflows package)
 
-Once you've made your choice, **vibe-llama** will generate a rule file for your coding agent. For example, if you selevted Cursor, a new rule will be added to `.cursor/rules`. Now, all of the context and insttructions about your chosen LlamaIndex service will be available to your coding agent of choice.
+Once you've made your choice, **vibe-llama** will generate a rule file for your coding agent. For example, if you selected Cursor, a new rule will be added to `.cursor/rules`. Now, all of the context and instructions about your chosen LlamaIndex service will be available to your coding agent of choice.
 
 ## Installation
 
