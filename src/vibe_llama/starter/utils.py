@@ -16,12 +16,12 @@ def write_file(file_path: str, content: str, service_url: str) -> None:
         content = file_content + "\n" + content
     if file_path.startswith(".cursor"):
         frontmatter = f"""---
-description: Instructions from {service_url} for Cursor coding agent 
+description: Instructions from {service_url} for Cursor coding agent
 alwaysApply: false
 ---
 
 """
-        content = frontmatter +"\n" + content
+        content = frontmatter + "\n" + content
     with open(file_path, "w") as w:
         w.write(content)
     return None
