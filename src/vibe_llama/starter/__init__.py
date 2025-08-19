@@ -42,7 +42,7 @@ async def starter(
     for fl in agent_files:
         if verbose:
             cs.log(f"[bold cyan]WRITING[/]\t{fl}")
-        write_file(fl, instructions)
+        write_file(fl, instructions, service_url)
         if verbose:
             cs.log("[bold green]WRITTEN✅[/]")
     cs.log(
