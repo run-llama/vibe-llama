@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 
-def write_file(file_path: str, content: str) -> None:
+def write_file(file_path: str, content: str, service_url: str) -> None:
     directory = os.path.dirname(file_path)
     if not Path(directory).is_dir():
         os.makedirs(directory, exist_ok=True)
@@ -14,6 +14,14 @@ def write_file(file_path: str, content: str) -> None:
         with open(file_path) as f:
             file_content = f.read()
         content = file_content + "\n" + content
+    if file_path.startswith(".cursor"):
+        frontmatter = f"""---
+description: Instructions from {service_url} for Cursor coding agent
+alwaysApply: false
+---
+
+"""
+        content = frontmatter + "\n" + content
     with open(file_path, "w") as w:
         w.write(content)
     return None

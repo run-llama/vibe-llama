@@ -63,7 +63,7 @@ class SelectServiceApp(App):
         yield Label("Select the service", id="label1")
         yield Select(
             options=[(service, services[service]) for service in services],
-            prompt="Select the service you would like to work with",
+            prompt="Select the service you would like to work with. This will add context and instructions about the service to your coding agent of choice",
         )
         yield Footer()
 

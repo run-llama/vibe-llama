@@ -2,6 +2,13 @@
 
 **vibe-llama** is a set of tools that are designed to help developers build working and reliable applications with [LlamaIndex](https://github.com/run-llama/llama_index), [LlamaCloud Services](https://github.com/run-llama/llama_cloud_services) and [llama-index-workflows](https://github.com/run-llama/workflows-py).
 
+This command-line tool aims to add the relevant context as rules to any coding agent of your choice (think Cursor, Claude Code, GitHub Copilot etc.):
+
+1. You select a coding agent.
+2. You select the LlamaIndex service (such as LlamaCloud, the LlamaIndex framework or the Workflows package)
+
+Once you've made your choice, **vibe-llama** will generate a rule file for your coding agent. For example, if you selevted Cursor, a new rule will be added to `.cursor/rules`. Now, all of the context and insttructions about your chosen LlamaIndex service will be available to your coding agent of choice.
+
 ## Installation
 
 **User settings**
@@ -31,10 +38,24 @@ Build and install the project:
 
 ```bash
 uv build
-uv pip install [-e] dist/*.whl
 ```
 
-Use the `-e` flag if you want your local installation to be editable.
+For regular installation:
+
+```bash
+uv pip install dist/*.whl
+```
+
+For editable installation (development):
+
+```bash
+# Activate virtual environment first
+uv venv
+source .venv/bin/activate  # On Unix/macOS
+
+# Then install in editable mode
+uv pip install -e .
+```
 
 ## Usage
 

@@ -65,10 +65,10 @@ async def test_get_instructions() -> None:
 
 def test_write_file(tmp_path: Path) -> None:
     fl = tmp_path / "hello.txt"
-    write_file(str(fl), "hello world\n")
+    write_file(str(fl), "hello world\n", "https://www.llamaindex.ai")
     assert fl.is_file()
     assert fl.stat().st_size > 0
-    write_file(str(fl), "hello world")
+    write_file(str(fl), "hello world", "https://www.llamaindex.ai")
     with open(fl) as f:
         content = f.read()
     assert content == "hello world\n\nhello world"
