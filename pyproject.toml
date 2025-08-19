@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+  "mypy>=1.17.1",
+  "pre-commit>=4.3.0",
+  "pytest>=8.4.1",
+  "pytest-asyncio>=1.1.0"
+]
+
+[project]
+name = "vibe-llama"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "httpx>=0.28.1",
+  "rich-gradient>=0.3.3",
+  "textual>=5.3.0"
+]
+
+[project.scripts]
+vibe-llama = "vibe_llama.main:main"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["src/vibe_llama"]
+
+[tool.hatch.build.targets.wheel.sources]
+"src" = ""
+
+[tool.mypy]
+disable_error_code = ["import-not-found", "import-untyped"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = [
+  "-s",
+  "-v",
+  "--tb=short"
+]

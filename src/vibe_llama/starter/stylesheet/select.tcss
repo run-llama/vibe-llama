@@ -1,0 +1,17 @@
+Screen {
+    align: center middle;
+}
+
+Select {
+    align: center middle;
+}
+
+Label {
+    align: center top;
+    content-align: center middle;
+    width: 100%;
+}
+
+#label1 {
+    color: #ffaf05
+}
