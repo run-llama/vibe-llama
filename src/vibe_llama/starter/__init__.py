@@ -1,7 +1,7 @@
 from typing import Optional
 from rich.console import Console
 
-from .terminal import SelectAgentApp, SelectServiceApp
+from .terminal import run_terminal_interface
 from .utils import write_file, get_instructions
 from .data import agent_rules, services
 
@@ -13,36 +13,48 @@ async def starter(
 ) -> None:
     cs = Console(stderr=True)
     if agent is None and service is None:
-        agent_app = SelectAgentApp()
-        await agent_app.run_async()
-        agent_files = agent_app.selected
-        if len(agent_files) == 0:
-            raise ValueError("You need to choose a coding agent")
-        service_app = SelectServiceApp()
-        await service_app.run_async()
-        service_url = service_app.selected
-        if service_url is None:
-            raise ValueError("You need to choose a service")
+        term_res = await run_terminal_interface()
+        if not term_res:
+            cs.log(
+                "[bold red]ERROR[/]\tYou need to choose at least one agent and one service before continuining. Exiting..."
+            )
+            return None
+        agent_files, service_urls = term_res
+        if agent_files is None or service_urls is None:
+            cs.log(
+                "[bold red]ERROR[/]\tYou need to choose at least one agent and one service before continuining. Exiting..."
+            )
+            return None
     elif agent is not None and service is not None:
         agent_files = [agent_rules[agent]]
-        service_url = services[service]
+        service_urls = [services[service]]
     else:
-        raise ValueError(
-            "Either you pass the options from command line or you choose them from terminal interface, you can't mix the two."
+        cs.log(
+            "[bold red]ERROR[/]\tEither you pass the options from command line or you choose them from terminal interface, you can't mix the two."
         )
-    if verbose:
-        cs.log(f"[bold cyan]FETCHING[/]\t{service_url}")
-    instructions = await get_instructions(instructions_url=service_url)
-    if instructions is None:
-        raise ValueError(
-            "It was not possible to retrieve instructions, please try again later"
+        return None
+    instructions = ""
+    for serv_url in service_urls:
+        if verbose:
+            cs.log(f"[bold cyan]FETCHING[/]\t{serv_url}")
+        instr = await get_instructions(instructions_url=serv_url)
+        if instr is None:
+            cs.log(
+                f"[bold yellow]WARNING[/]\tIt was not possible to retrieve instructions for {serv_url}, please try again later"
+            )
+            continue
+        instructions += instr + "\n\n---\n\n"
+        if verbose:
+            cs.log("[bold green]FETCHED✅[/]")
+    if not instructions:
+        cs.log(
+            "[bold red]ERROR[/]\tIt was not possible to retrieve instructions at this time, please try again later"
         )
-    if verbose:
-        cs.log("[bold green]FETCHED✅[/]")
+        return None
     for fl in agent_files:
         if verbose:
             cs.log(f"[bold cyan]WRITING[/]\t{fl}")
-        write_file(fl, instructions, service_url)
+        write_file(fl, instructions, ", ".join(service_urls))
         if verbose:
             cs.log("[bold green]WRITTEN✅[/]")
     cs.log(
