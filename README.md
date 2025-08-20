@@ -74,7 +74,17 @@ vibe-llama starter # launch a TUI
 vibe-llama starter -a 'GitHub Copilot' -s LlamaIndex -v # Select GitHub Copilot and LlamaIndex and enable verbose logging
 ```
 
-### More commands coming soon!🎉
+### docuflows
+
+`docuflows` is a CLI agent that enables you to build, edit or better understand workflows that are oriented to intelligent document processing (combining llama-index-workflows and LlamCloud).
+
+Running `vibe-llama docuflows` will start the terminal interface where you will be able to talk to the agent and create, edit or get help with your workflows.
+
+**Example usage**
+
+```bash
+vibe-llama docuflows # launch a TUI
+```
 
 ## Contributing
 
