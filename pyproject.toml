@@ -18,8 +18,9 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
   "httpx>=0.28.1",
-  "rich-gradient>=0.3.3",
-  "textual>=5.3.0"
+  "prompt-toolkit>=3.0.51",
+  "rich>=14.1.0",
+  "rich-gradient>=0.3.3"
 ]
 
 [project.scripts]
