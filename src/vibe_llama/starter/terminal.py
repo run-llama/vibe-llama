@@ -1,77 +1,41 @@
-from textual import on
-from textual.app import App, ComposeResult
-from textual.binding import Binding
-from textual.widgets import Select, Label, Footer, SelectionList
-from typing import Optional
+from prompt_toolkit.shortcuts import checkboxlist_dialog
+from prompt_toolkit.formatted_text import HTML
+from prompt_toolkit.styles import Style
+from typing import Optional, Tuple, List, cast
 
 from .data import agent_rules, services
 
+style = Style.from_dict(
+    {
+        "dialog": "bg:#F8E9D8",
+        "dialog.body": "bg:#45DFF8",
+        "dialog shadow": "bg:#a6a2ab",
+    }
+)
 
-class SelectAgentApp(App):
-    CSS_PATH = "stylesheet/selection_list.tcss"
-    BINDINGS = [
-        Binding(
-            key="ctrl+q", action="quit", description="Submit", key_display="ctrl+q"
-        ),
-        Binding(
-            key="ctrl+d",
-            action="toggle_dark",
-            description="Toggle Dark Theme",
-            key_display="ctrl+d",
-        ),
-    ]
-    selected: list[str] = []
+app1 = checkboxlist_dialog(
+    title=HTML("<style fg='black'>Coding Agents</style>"),
+    text="Which coding agents would you like to write instructions for?",
+    values=[(agent_rules[agent], agent) for agent in agent_rules],
+    style=style,
+)
 
-    def compose(self) -> ComposeResult:
-        yield SelectionList[str](
-            *[(agent, agent_rules[agent]) for agent in agent_rules]
-        )
-        yield Footer()
-
-    def on_mount(self) -> None:
-        self.query_one(
-            SelectionList
-        ).border_title = "Select the Coding Agents you want to write instructions for."
-
-    def action_toggle_dark(self) -> None:
-        self.theme = (
-            "textual-dark" if self.theme == "textual-light" else "textual-light"  # type: ignore
-        )
-
-    @on(SelectionList.SelectedChanged)
-    def select_changed(self, event: SelectionList.SelectedChanged) -> None:
-        self.selected.extend(event.selection_list.selected)
-        self.selected = list(set(self.selected))
+app2 = checkboxlist_dialog(
+    title=HTML("<style fg='black'>Services</style>"),
+    text="Which services would you like to get instructions for?",
+    values=[(services[service], service) for service in services],
+    cancel_text="Go Back",
+    style=style,
+)
 
 
-class SelectServiceApp(App):
-    CSS_PATH = "stylesheet/select.tcss"
-    BINDINGS = [
-        Binding(
-            key="ctrl+q", action="quit", description="Submit", key_display="ctrl+q"
-        ),
-        Binding(
-            key="ctrl+d",
-            action="toggle_dark",
-            description="Toggle Dark Theme",
-            key_display="ctrl+d",
-        ),
-    ]
-    selected: Optional[str] = None
+async def run_terminal_interface() -> Optional[Tuple[List[str], List[str]]]:
+    results_array1 = None
+    results_array2 = None
 
-    def compose(self) -> ComposeResult:
-        yield Label("Select the service", id="label1")
-        yield Select(
-            options=[(service, services[service]) for service in services],
-            prompt="Select the service you would like to work with. This will add context and instructions about the service to your coding agent of choice",
-        )
-        yield Footer()
-
-    def action_toggle_dark(self) -> None:
-        self.theme = (
-            "textual-dark" if self.theme == "textual-light" else "textual-light"  # type: ignore
-        )
-
-    @on(Select.Changed)
-    def select_changed(self, event: Select.Changed) -> None:
-        self.selected = str(event.value)
+    while not results_array2:
+        results_array1 = await app1.run_async()
+        if not results_array1:
+            return None
+        results_array2 = await app2.run_async()
+    return cast(List[str], results_array1), results_array2
