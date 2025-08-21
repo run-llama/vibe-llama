@@ -19,6 +19,6 @@ agent_rules = {
 
 services = {
     "LlamaIndex": "https://docs.llamaindex.ai/en/latest/llms.txt",
-    "LlamaCloud Services": "https://epuwdqkitbqtfernuzbd.supabase.co/storage/v1/object/public/files/llamacloud.md",
-    "llama-index-workflows": "https://epuwdqkitbqtfernuzbd.supabase.co/storage/v1/object/public/files/llama-index-workflows.md",
+    "LlamaCloud Services": "https://raw.githubusercontent.com/run-llama/vibe-llama/main/documentation/llamacloud.md",
+    "llama-index-workflows": "https://raw.githubusercontent.com/run-llama/vibe-llama/main/documentation/llama-index-workflows.md",
 }
