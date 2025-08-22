@@ -4,15 +4,18 @@ Workflow editing handler for AI Agent CLI.
 Handles editing existing workflows and runbooks using diff-based iterative editing.
 """
 
+import difflib
 from llama_index.core.llms import LLM, MessageRole
 from llama_index.core.prompts import ChatMessage
 from workflows import Context
 from workflows.events import InputRequiredEvent
 from typing import Optional
+from llama_index.core.prompts import ChatPromptTemplate
+from pydantic import BaseModel, Field
 
-from vibe_llama.docuflows.core import generate_runbook, load_context_files
+from vibe_llama.docuflows.commons.core import generate_runbook, load_context_files
 from vibe_llama.docuflows.diff_editing_workflow import DiffEditingWorkflow
-from vibe_llama.docuflows.utils import CLIFormatter, StreamEvent
+from vibe_llama.docuflows.commons import CLIFormatter, StreamEvent
 
 
 async def handle_edit_workflow(
@@ -126,7 +129,6 @@ async def handle_edit_workflow(
         await ctx.store.set("edit_session_history", edit_history)
 
         # Generate and show diff
-        import difflib
 
         # Create unified diff
         original_lines = current_workflow.splitlines(keepends=True)
@@ -352,8 +354,6 @@ async def handle_generate_runbook_after_diff(
 
 async def interpret_user_intent(user_input: str, llm: LLM) -> str:
     """Use LLM to interpret user intent: approve, continue, or exit"""
-    from llama_index.core.prompts import ChatMessage, ChatPromptTemplate
-    from pydantic import BaseModel, Field
 
     class UserIntent(BaseModel):
         """User's intent for the edit review."""

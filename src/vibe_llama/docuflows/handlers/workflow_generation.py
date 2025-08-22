@@ -8,11 +8,12 @@ import os
 import re
 
 from llama_index.core.llms import LLM, MessageRole
+from llama_index.core.prompts import ChatPromptTemplate
 from llama_index.core.prompts import ChatMessage
 from workflows import Context
 from workflows.events import InputRequiredEvent
 
-from vibe_llama.docuflows.core import (
+from vibe_llama.docuflows.commons.core import (
     DocumentComplexityAssessment,
     create_workflow_folder,
     generate_runbook,
@@ -20,7 +21,7 @@ from vibe_llama.docuflows.core import (
     save_runbook,
     save_workflow,
 )
-from vibe_llama.docuflows.utils import (
+from vibe_llama.docuflows.commons import (
     CLIFormatter,
     StreamEvent,
     clean_file_path,
@@ -79,8 +80,6 @@ Consider:
 5. Keep parse and extract quality levels consistent
 
 Provide recommendations with brief reasoning. NOTE: Always set needs_reasoning=False regardless of task complexity."""
-
-    from llama_index.core.prompts import ChatPromptTemplate
 
     chat_template = ChatPromptTemplate(
         [ChatMessage.from_str(complexity_prompt, "user")]

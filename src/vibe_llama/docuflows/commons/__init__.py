@@ -2,12 +2,36 @@
 Utility classes and functions for AI Agent CLI.
 """
 
+import textwrap
+import uuid
+import os
+import asyncio
 from typing import Any
 
 from rich.console import Console
 from rich.markdown import Markdown
+from rich.padding import Padding
 from rich.syntax import Syntax
 from rich.text import Text
+from rich.console import Group
+from rich.rule import Rule
+
+from prompt_toolkit.completion import Completer, Completion
+from prompt_toolkit import PromptSession
+from prompt_toolkit.formatted_text import HTML
+from prompt_toolkit.styles import Style
+
+from llama_index.core.prompts import ChatMessage, ChatPromptTemplate
+from pydantic import BaseModel, Field
+
+
+def validate_uuid(uuid_string: str) -> bool:
+    """Validate if a string is a proper UUID format"""
+    try:
+        uuid.UUID(uuid_string)
+        return True
+    except ValueError:
+        return False
 
 
 class StreamEvent:
@@ -45,10 +69,6 @@ class CLIFormatter:
         """Format agent response with markdown support and indentation"""
         if not text.strip():
             return Text("")
-
-        from rich.markdown import Markdown
-        from rich.padding import Padding
-
         # Use Markdown to preserve bold and other formatting
         content = Padding(Markdown(text.strip()), (0, 0, 0, 2))  # 2-space left indent
 
@@ -125,12 +145,6 @@ class CLIFormatter:
     @staticmethod
     def workflow_summary(summary: str, max_width: int = 90):
         """Format workflow summary with controlled width and markdown rendering"""
-        import textwrap
-
-        from rich.console import Group
-        from rich.markdown import Markdown
-        from rich.padding import Padding
-
         # Create a group with header and wrapped content
         header = Text("📋 Workflow Summary", style="bold cyan")
 
@@ -171,9 +185,6 @@ class CLIFormatter:
     @staticmethod
     def file_list(files: list, title: str = "📁 Available Files"):
         """Format file list - simple and resize-friendly"""
-        from rich.console import Group
-        from rich.rule import Rule
-
         header = Text(title, style="bold yellow")
         rule = Rule(style="dim yellow")
 
@@ -200,9 +211,6 @@ class CLIFormatter:
         code: str, title: str = "🔧 Generated Workflow Code", language: str = "python"
     ):
         """Format code output - indented syntax highlighting"""
-        from rich.console import Group
-        from rich.padding import Padding
-        from rich.rule import Rule
 
         header = Text(title, style="bold green")
         rule = Rule(style="dim green")
@@ -216,9 +224,6 @@ class CLIFormatter:
     @staticmethod
     def runbook_output(content: str, title: str = "📋 Generated Runbook"):
         """Format runbook output - indented markdown"""
-        from rich.console import Group
-        from rich.padding import Padding
-        from rich.rule import Rule
 
         header = Text(title, style="bold blue")
         rule = Rule(style="dim blue")
@@ -231,10 +236,6 @@ class PathCompleter:
     """Custom completer for @ symbol path completion"""
 
     def __init__(self):
-        import os
-
-        from prompt_toolkit.completion import Completer, Completion
-
         self.Completer = Completer
         self.Completion = Completion
         self.os = os
@@ -315,15 +316,7 @@ async def boxed_input_async(
     # Print the formatted prompt
     console.print(formatted_prompt)
     console.print()
-
     try:
-        # Use prompt-toolkit's async version for rich input with keyboard shortcuts
-        from prompt_toolkit import PromptSession
-        from prompt_toolkit.completion import Completer
-        from prompt_toolkit.formatted_text import HTML
-        from prompt_toolkit.styles import Style
-
-        # Custom style for the prompt and completions
         style = Style.from_dict(
             {
                 "prompt": "#ffaa00 bold",  # Yellow/orange prompt
@@ -353,7 +346,7 @@ async def boxed_input_async(
 
             completer = CustomCompleter()
 
-        # Create session for async prompting
+            # Create session for async prompting
         session = PromptSession(
             HTML("<prompt>❯ </prompt>"),
             style=style,
@@ -369,21 +362,6 @@ async def boxed_input_async(
         console.print()  # Extra spacing after input
         return response.strip()
 
-    except ImportError:
-        # Fallback to basic input if prompt-toolkit not available
-        import asyncio
-
-        console.print("[bold yellow]>[/bold yellow] ", end="")
-
-        # Simple async input fallback
-        def get_input():
-            return input()
-
-        loop = asyncio.get_event_loop()
-        response = await loop.run_in_executor(None, get_input)
-        console.print()
-        return response.strip()
-
     except KeyboardInterrupt:
         console.print()
         raise
@@ -391,8 +369,6 @@ async def boxed_input_async(
 
 def clean_file_path(path: str) -> str:
     """Clean file path by removing @ symbol and normalizing path"""
-    import os
-
     if path.startswith("@"):
         path = path[1:]  # Remove @ symbol
 
@@ -413,8 +389,6 @@ def validate_reference_path(path: str) -> tuple[bool, str, str]:
     Returns:
         Tuple of (is_valid, error_message, suggestions)
     """
-    import os
-
     if not os.path.exists(path):
         parent_dir = os.path.dirname(path)
         suggestions = []
@@ -466,8 +440,6 @@ def validate_workflow_path(path: str) -> tuple[bool, str, str]:
     Returns:
         Tuple of (is_valid, actual_path_to_use, error_message)
     """
-    import os
-
     # First try the path as-is
     if os.path.exists(path):
         if os.path.isfile(path):
@@ -549,8 +521,6 @@ def get_test_file_suggestions(directory: str) -> list[str]:
     Returns:
         List of file paths suitable for testing
     """
-    import os
-
     if not os.path.exists(directory) or not os.path.isdir(directory):
         return []
 
@@ -576,8 +546,6 @@ async def analyze_workflow_with_llm(workflow_path: str, llm) -> dict:
 
     Returns dict with information about how to run the workflow.
     """
-    from llama_index.core.prompts import ChatMessage, ChatPromptTemplate
-    from pydantic import BaseModel, Field
 
     class WorkflowAnalysis(BaseModel):
         """Analysis of a workflow file's execution requirements."""
@@ -668,8 +636,6 @@ Focus on the argument parsing, main function, and how the workflow expects to re
 
 def boxed_input(prompt_text: str, title: str = "💬 Input Required") -> str:
     """Create a simple, resize-friendly input prompt - sync wrapper for backward compatibility"""
-    import asyncio
-
     try:
         # If we're already in an event loop, we need to use the async version differently
         asyncio.get_running_loop()

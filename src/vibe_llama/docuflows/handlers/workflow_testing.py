@@ -14,7 +14,7 @@ from llama_index.core.prompts import ChatMessage
 from workflows import Context
 from workflows.events import InputRequiredEvent
 
-from vibe_llama.docuflows.utils import (
+from vibe_llama.docuflows.commons import (
     CLIFormatter,
     StreamEvent,
     analyze_workflow_with_llm,

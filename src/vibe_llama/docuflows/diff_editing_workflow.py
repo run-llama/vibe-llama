@@ -12,7 +12,7 @@ from workflows import Context, Workflow, step
 from workflows.events import Event, StartEvent, StopEvent
 from typing import Optional
 
-from .utils import StreamEvent
+from .commons import StreamEvent
 
 
 class CodeDiff(BaseModel):
