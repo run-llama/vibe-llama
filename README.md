@@ -86,6 +86,27 @@ Running `vibe-llama docuflows` will start the terminal interface where you will 
 vibe-llama docuflows # launch a TUI
 ```
 
+## SDK
+
+vibe-llama also comes with a programmatic interface that you can call within your python scripts.
+
+### `VibeLlamaStarter`
+
+To replicate the `starter` command on the CLI and fetch all the needed instructions for your coding agents, you can use the following code:
+
+```python
+from vibe_llama.sdk import VibeLlamaStarter
+
+starter = VibeLlamaStarter(
+    agents=["GitHub Copilot", "Cursor"],
+    services=["LlamaIndex", "llama-index-workflows"],
+)
+
+await starter.write_instructions(
+    verbose=True, max_retries=20, retry_interval=0.7
+)
+```
+
 ## Contributing
 
 We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) to get started.
