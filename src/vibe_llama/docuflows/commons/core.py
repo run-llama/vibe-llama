@@ -20,13 +20,8 @@ from llama_index.llms.openai import OpenAI
 from pydantic import BaseModel, Field
 
 # Import for event streaming (optional to support legacy usage)
-try:
-    from workflows import Context
-
-    from . import StreamEvent
-except ImportError:
-    Context = None
-    StreamEvent = None
+from workflows import Context
+from . import StreamEvent
 
 from vibe_llama.docuflows.prompts import (
     RUNBOOK_GENERATION_PROMPT,
@@ -79,13 +74,14 @@ def _send_event(
     is_code: bool = False,
 ):
     """Send an event or print message depending on context availability"""
-    if ctx and StreamEvent:
+    if ctx:
         if is_code:
-            ctx.write_event_to_stream(StreamEvent(delta=message + end, is_code=is_code))
+            ctx.write_event_to_stream(StreamEvent(delta=message + end, is_code=is_code))  # type: ignore
         else:
             ctx.write_event_to_stream(
                 StreamEvent(
-                    rich_content=CLIFormatter.indented_text(message), newline_after=True
+                    rich_content=CLIFormatter.indented_text(message),
+                    newline_after=True,  # type: ignore
                 )
             )
     else:
