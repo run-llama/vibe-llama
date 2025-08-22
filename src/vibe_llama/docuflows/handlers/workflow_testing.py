@@ -21,6 +21,8 @@ from vibe_llama.docuflows.commons import (
     get_test_file_suggestions,
 )
 
+from vibe_llama.docuflows.commons.typed_state import WorkflowState
+
 
 def clean_file_path(path: str) -> str:
     """Clean file path by removing @ symbol and normalizing path"""
@@ -35,7 +37,7 @@ def clean_file_path(path: str) -> str:
 
 
 async def handle_test_workflow(
-    ctx: Context, test_file_path: str, llm=None
+    ctx: Context[WorkflowState], test_file_path: str, llm=None
 ) -> InputRequiredEvent:
     """Test the current workflow by actually running it as a subprocess"""
     current_workflow = await ctx.store.get("current_workflow")
@@ -111,7 +113,9 @@ async def handle_test_workflow(
     return await execute_workflow(ctx, workflow_path, None, llm, analysis)  # type: ignore
 
 
-async def handle_test_file_input(ctx: Context, llm) -> InputRequiredEvent:
+async def handle_test_file_input(
+    ctx: Context[WorkflowState], llm
+) -> InputRequiredEvent:
     """Handle the case where we need to get test file input from user"""
     return InputRequiredEvent(
         prefix="Please provide the path to a sample file to test: ",
@@ -120,7 +124,7 @@ async def handle_test_file_input(ctx: Context, llm) -> InputRequiredEvent:
 
 
 async def handle_test_file_validation(
-    ctx: Context, test_file_path: str, llm, analysis: dict
+    ctx: Context[WorkflowState], test_file_path: str, llm, analysis: dict
 ) -> InputRequiredEvent:
     """Validate test file path and handle directory vs file logic"""
 
@@ -176,7 +180,11 @@ async def handle_test_file_validation(
 
 
 async def execute_workflow(
-    ctx: Context, workflow_path: str, test_file_path: str, llm, analysis: dict
+    ctx: Context[WorkflowState],
+    workflow_path: str,
+    test_file_path: str,
+    llm,
+    analysis: dict,
 ) -> InputRequiredEvent:
     """Execute the workflow with the given test file"""
 
@@ -365,7 +373,11 @@ async def execute_workflow(
 
 
 async def handle_test_file_selection(
-    ctx: Context, user_input: str, available_files: list, base_directory: str, llm: LLM
+    ctx: Context[WorkflowState],
+    user_input: str,
+    available_files: list,
+    base_directory: str,
+    llm: LLM,
 ) -> InputRequiredEvent:
     """Handle test workflow file selection using natural language or direct path"""
 

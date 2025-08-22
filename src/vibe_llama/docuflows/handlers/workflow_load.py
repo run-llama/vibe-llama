@@ -9,9 +9,12 @@ from vibe_llama.docuflows.commons import (
     clean_file_path,
     validate_workflow_path,
 )
+from vibe_llama.docuflows.commons.typed_state import WorkflowState
 
 
-async def handle_load_workflow(ctx: Context, workflow_path: str) -> InputRequiredEvent:
+async def handle_load_workflow(
+    ctx: Context[WorkflowState], workflow_path: str
+) -> InputRequiredEvent:
     """Load an existing workflow from file"""
 
     if not workflow_path:

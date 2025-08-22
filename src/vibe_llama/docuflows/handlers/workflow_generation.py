@@ -27,10 +27,14 @@ from vibe_llama.docuflows.commons import (
     clean_file_path,
     validate_reference_path,
 )
+from vibe_llama.docuflows.commons.typed_state import WorkflowState
 
 
 async def assess_document_complexity(
-    task: str, reference_files_path: str, llm: LLM, ctx: Context | None = None
+    task: str,
+    reference_files_path: str,
+    llm: LLM,
+    ctx: Context[WorkflowState] | None = None,
 ) -> DocumentComplexityAssessment:
     """Assess document complexity to recommend appropriate parse/extract configurations"""
 
@@ -113,7 +117,7 @@ Provide recommendations with brief reasoning. NOTE: Always set needs_reasoning=F
 
 
 async def handle_generate_workflow(
-    ctx: Context, task: str, reference_files_path: str, llm: LLM
+    ctx: Context[WorkflowState], task: str, reference_files_path: str, llm: LLM
 ) -> InputRequiredEvent:
     """Generate a new workflow"""
     config = await ctx.store.get("config")
@@ -349,7 +353,7 @@ You can:
 
 
 async def handle_folder_name_input(
-    ctx: Context, user_input: str, default_folder_name: str, llm: LLM
+    ctx: Context[WorkflowState], user_input: str, default_folder_name: str, llm: LLM
 ) -> InputRequiredEvent:
     """Handle workflow folder name input with LLM conversion"""
 

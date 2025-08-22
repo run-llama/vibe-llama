@@ -6,9 +6,10 @@ from workflows.events import InputRequiredEvent
 from vibe_llama.docuflows.commons import (
     StreamEvent,
 )
+from vibe_llama.docuflows.commons.typed_state import WorkflowState
 
 
-async def handle_help(ctx: Context) -> InputRequiredEvent:
+async def handle_help(ctx: Context[WorkflowState]) -> InputRequiredEvent:
     """Show help information"""
     help_text = """
 🤖 AI Agent CLI Help:
@@ -43,7 +44,7 @@ For workflow generation, I'll need:
 
 
 async def handle_answer_question(
-    ctx: Context, question: str, llm: LLM
+    ctx: Context[WorkflowState], question: str, llm: LLM
 ) -> InputRequiredEvent:
     """Answer questions about the current workflow with full context"""
     current_workflow = await ctx.store.get("current_workflow")

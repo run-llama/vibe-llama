@@ -1,5 +1,5 @@
 import json
-from typing import Optional
+from typing import Optional, cast
 
 from llama_index.core.llms import LLM, MessageRole
 from llama_index.core.prompts import ChatMessage
@@ -29,6 +29,7 @@ from .utils import (
     ToolCallsEvent,
     DEBUG_MODE,
 )
+from vibe_llama.docuflows.commons.typed_state import WorkflowState
 
 # Import the shared workflow generation functions
 from vibe_llama.docuflows.handlers.workflow_help import (
@@ -83,17 +84,19 @@ class LlamaVibeWorkflow(Workflow):
         self.verbose = verbose
 
     @step
-    async def setup(self, ctx: Context, ev: StartEvent) -> InputRequiredEvent:
+    async def setup(
+        self, ctx: Context[WorkflowState], ev: StartEvent
+    ) -> InputRequiredEvent:
         """Initialize configuration and welcome user"""
         # Load or create config
         config = AgentConfig.load_from_file()
-        await ctx.store.set("config", config)
-        await ctx.store.set("chat_history", [])
-        await ctx.store.set("current_workflow", None)
-        await ctx.store.set("current_workflow_path", None)
-        await ctx.store.set("app_state", "initializing")
-        await ctx.store.set("current_model", config.current_model)
-
+        async with ctx.store.edit_state() as state:
+            state.config = config
+            state.chat_history = []
+            state.current_workflow = None
+            state.current_workflow_path = None
+            state.app_state = "initializing"
+            state.current_model = config.current_model
         # Initialize LLM based on saved model
         if config.current_model.startswith("claude-"):
             self.llm = Anthropic(
@@ -111,7 +114,8 @@ class LlamaVibeWorkflow(Workflow):
 
         # Check configuration
         if not config.project_id or not config.organization_id:
-            await ctx.store.set("app_state", "configuring")
+            async with ctx.store.edit_state() as state:
+                state.app_state = "configuring"
             ctx.write_event_to_stream(
                 StreamEvent(  # type: ignore
                     rich_content=CLIFormatter.indented_text(
@@ -123,7 +127,8 @@ class LlamaVibeWorkflow(Workflow):
             )
             return InputRequiredEvent(prefix="")  # type: ignore
         else:
-            await ctx.store.set("app_state", "ready")
+            async with ctx.store.edit_state() as state:
+                state.app_state = "ready"
             welcome_msg = f"""Welcome back! I'm ready to help you create document processing workflows.
 
 🚀 **vibe-llama docuflows** transforms your documents into structured data using AI-powered workflows built with LlamaIndex + LlamaCloud.
@@ -159,7 +164,7 @@ What kind of document processing workflow would you like to create?"""
 
     @step
     async def handle_general_input(
-        self, ctx: Context, ev: HumanResponseEvent
+        self, ctx: Context[WorkflowState], ev: HumanResponseEvent
     ) -> InputRequiredEvent | ToolCallsEvent | StopEvent | None:
         """Handle general user input (no tag or general tag)"""
         # Debug: Check if event has a tag
@@ -173,7 +178,7 @@ What kind of document processing workflow would you like to create?"""
                 debug_print(f"Ignoring tagged event: {ev.tag}")
             return  # Let other steps handle tagged events
 
-        app_state = await ctx.store.get("app_state", "initializing")
+        app_state = (await ctx.store.get_state()).app_state
         user_input = ev.response.strip()
 
         # Handle configuration state
@@ -197,7 +202,7 @@ What kind of document processing workflow would you like to create?"""
 
     @step
     async def handle_folder_name_input_step(
-        self, ctx: Context, ev: HumanResponseEvent
+        self, ctx: Context[WorkflowState], ev: HumanResponseEvent
     ) -> InputRequiredEvent | None:
         """Handle workflow folder name input step"""
         # Only handle events with 'folder_name_input' tag
@@ -213,7 +218,7 @@ What kind of document processing workflow would you like to create?"""
 
     @step
     async def handle_load_workflow_input(
-        self, ctx: Context, ev: HumanResponseEvent
+        self, ctx: Context[WorkflowState], ev: HumanResponseEvent
     ) -> InputRequiredEvent | None:
         """Handle load workflow file path input step"""
         # Only handle events with 'load_workflow' tag
@@ -225,7 +230,7 @@ What kind of document processing workflow would you like to create?"""
 
     @step
     async def handle_test_file_selection_input(
-        self, ctx: Context, ev: HumanResponseEvent
+        self, ctx: Context[WorkflowState], ev: HumanResponseEvent
     ) -> InputRequiredEvent | None:
         """Handle test workflow file selection input step"""
         # Only handle events with 'file_selection' tag
@@ -242,7 +247,7 @@ What kind of document processing workflow would you like to create?"""
 
     @step
     async def handle_config_menu_input(
-        self, ctx: Context, ev: HumanResponseEvent
+        self, ctx: Context[WorkflowState], ev: HumanResponseEvent
     ) -> InputRequiredEvent | None:
         """Handle config menu selections"""
         # Only handle events with 'config_menu' tag
@@ -250,7 +255,7 @@ What kind of document processing workflow would you like to create?"""
             return  # Let other steps handle non-config-menu events
 
         user_input = ev.response.strip().lower()
-        config = await ctx.store.get("config")
+        config = cast(Optional[AgentConfig], (await ctx.store.get_state()).config)
 
         if user_input == "done":
             ctx.write_event_to_stream(
@@ -270,7 +275,8 @@ What kind of document processing workflow would you like to create?"""
 
         elif user_input == "reset":
             config = AgentConfig()
-            await ctx.store.set("config", config)
+            async with ctx.store.edit_state() as state:
+                state.config = config
             config.save_to_file()
             ctx.write_event_to_stream(
                 StreamEvent(  # type: ignore
@@ -318,7 +324,7 @@ What kind of document processing workflow would you like to create?"""
 
     @step
     async def handle_config_edit_input(
-        self, ctx: Context, ev: HumanResponseEvent
+        self, ctx: Context[WorkflowState], ev: HumanResponseEvent
     ) -> InputRequiredEvent | None:
         """Handle individual config field editing"""
         tag = getattr(ev, "tag", None)
@@ -326,13 +332,14 @@ What kind of document processing workflow would you like to create?"""
             return  # Let other steps handle non-config-edit events
 
         user_input = ev.response.strip()
-        config = await ctx.store.get("config")
+        config = cast(AgentConfig, (await ctx.store.get_state()).config)
 
         if tag == "config_edit_project_id":
             if user_input and validate_uuid(user_input):
                 config.project_id = user_input
                 config.save_to_file()
-                await ctx.store.set("config", config)
+                async with ctx.store.edit_state() as state:
+                    state.config = config
                 ctx.write_event_to_stream(
                     StreamEvent(  # type: ignore
                         delta="✅ Project ID updated!\n"
@@ -351,7 +358,8 @@ What kind of document processing workflow would you like to create?"""
             if user_input and validate_uuid(user_input):
                 config.organization_id = user_input
                 config.save_to_file()
-                await ctx.store.set("config", config)
+                async with ctx.store.edit_state() as state:
+                    state.config = config
                 ctx.write_event_to_stream(
                     StreamEvent(  # type: ignore
                         delta="✅ Organization ID updated!\n"
@@ -370,7 +378,8 @@ What kind of document processing workflow would you like to create?"""
             if user_input:
                 config.output_directory = user_input
                 config.save_to_file()
-                await ctx.store.set("config", config)
+                async with ctx.store.edit_state() as state:
+                    state.config = config
                 ctx.write_event_to_stream(
                     StreamEvent(  # type: ignore
                         delta="✅ Output directory updated!\n"
@@ -389,7 +398,7 @@ What kind of document processing workflow would you like to create?"""
 
     @step
     async def handle_model_selection_input(
-        self, ctx: Context, ev: HumanResponseEvent
+        self, ctx: Context[WorkflowState], ev: HumanResponseEvent
     ) -> InputRequiredEvent | None:
         """Handle model selection"""
         # Only handle events with 'model_selection' tag
@@ -429,13 +438,15 @@ What kind of document processing workflow would you like to create?"""
 
         elif user_input in model_map:
             new_model = model_map[user_input]
-            await ctx.store.set("current_model", new_model)
+            async with ctx.store.edit_state() as state:
+                state.current_model = new_model
 
             # Save model to config file
-            config = await ctx.store.get("config")
+            config = cast(AgentConfig, (await ctx.store.get_state()).config)
             config.current_model = new_model
             config.save_to_file()
-            await ctx.store.set("config", config)
+            async with ctx.store.edit_state() as state:
+                state.config = config
 
             # Update the LLM instance in the workflow
             if new_model.startswith("claude-"):
@@ -471,7 +482,7 @@ What kind of document processing workflow would you like to create?"""
 
     @step
     async def handle_review_diff_input(
-        self, ctx: Context, ev: HumanResponseEvent
+        self, ctx: Context[WorkflowState], ev: HumanResponseEvent
     ) -> InputRequiredEvent | None:
         """Handle conversational diff review - approve, refine, or exit"""
         # Only handle events with 'review_diff_conversational' tag
@@ -496,9 +507,10 @@ What kind of document processing workflow would you like to create?"""
             )
 
             # Clear pending edits and conversation history
-            await ctx.store.set("pending_workflow_edit", None)  # type: ignore
-            await ctx.store.set("edit_session_history", None)
-            await ctx.store.set("edit_conversation_history", [])
+            async with ctx.store.edit_state() as state:
+                state.pending_workflow_edit = None
+                state.edit_session_history = None
+                state.edit_conversation_history = []
 
             ctx.write_event_to_stream(
                 StreamEvent(  # type: ignore
@@ -512,7 +524,7 @@ What kind of document processing workflow would you like to create?"""
 
         else:  # intent == 'continue'
             # User wants to continue editing - get conversation history
-            edit_conversation = await ctx.store.get("edit_conversation_history", [])
+            edit_conversation = (await ctx.store.get_state()).edit_conversation_history
 
             # Continue editing with full conversation context
             ctx.write_event_to_stream(
@@ -522,9 +534,9 @@ What kind of document processing workflow would you like to create?"""
             )
 
             # Get current workflow to continue editing
-            current_workflow = await ctx.store.get("pending_workflow_edit")
+            current_workflow = (await ctx.store.get_state()).pending_workflow_edit
             if not current_workflow:
-                current_workflow = await ctx.store.get("current_workflow")
+                current_workflow = (await ctx.store.get_state()).current_workflow
 
             if not current_workflow:
                 ctx.write_event_to_stream(
@@ -549,7 +561,7 @@ What kind of document processing workflow would you like to create?"""
 
     @step
     async def handle_review_edit_input(
-        self, ctx: Context, ev: HumanResponseEvent
+        self, ctx: Context[WorkflowState], ev: HumanResponseEvent
     ) -> InputRequiredEvent | None:
         """Handle code review confirmation for edited workflows"""
         # Only handle events with 'review_edit' tag
@@ -560,17 +572,18 @@ What kind of document processing workflow would you like to create?"""
 
         if user_input in ["y", "yes", "save", "ok"]:
             # User approved changes - save them
-            pending_workflow = await ctx.store.get("pending_workflow_edit")
-            pending_runbook = await ctx.store.get("pending_runbook_edit")
+            pending_workflow = (await ctx.store.get_state()).pending_workflow_edit
+            pending_runbook = (await ctx.store.get_state()).pending_runbook_edit
 
             if pending_workflow:
                 # Update context store
-                await ctx.store.set("current_workflow", pending_workflow)
-                await ctx.store.set("current_runbook", pending_runbook or "")
+                async with ctx.store.edit_state() as state:
+                    state.current_workflow = pending_workflow
+                    state.current_runbook = pending_runbook or ""
 
                 # Save to files
-                workflow_path = await ctx.store.get("current_workflow_path")
-                runbook_path = await ctx.store.get("current_runbook_path")
+                workflow_path = (await ctx.store.get_state()).current_workflow_path
+                runbook_path = (await ctx.store.get_state()).current_runbook_path
 
                 if workflow_path:
                     with open(workflow_path, "w") as f:
@@ -591,19 +604,15 @@ What kind of document processing workflow would you like to create?"""
                     )
 
                 # Clear pending edits
-                await ctx.store.set("pending_workflow_edit", None)
-                await ctx.store.set("pending_runbook_edit", None)
+                async with ctx.store.edit_state() as state:
+                    state.pending_runbook_edit = None
+                    state.pending_workflow_edit = None
+                    state.handler_status_message = "Successfully saved workflow edits. The updated workflow and runbook are now active."
 
                 ctx.write_event_to_stream(
                     StreamEvent(  # type: ignore
                         delta="🎉 Changes saved successfully!\n"
                     )
-                )
-
-                # Set status message for chat history
-                await ctx.store.set(
-                    "handler_status_message",
-                    "Successfully saved workflow edits. The updated workflow and runbook are now active.",
                 )
 
             ctx.write_event_to_stream(
@@ -625,8 +634,9 @@ What kind of document processing workflow would you like to create?"""
             )
 
             # Clear pending edits
-            await ctx.store.set("pending_workflow_edit", None)
-            await ctx.store.set("pending_runbook_edit", None)
+            async with ctx.store.edit_state() as state:
+                state.pending_runbook_edit = None
+                state.pending_workflow_edit = None
 
             ctx.write_event_to_stream(
                 StreamEvent(  # type: ignore
@@ -640,7 +650,7 @@ What kind of document processing workflow would you like to create?"""
 
     @step
     async def handle_test_workflow_input(
-        self, ctx: Context, ev: HumanResponseEvent
+        self, ctx: Context[WorkflowState], ev: HumanResponseEvent
     ) -> InputRequiredEvent | None:
         """Handle test workflow file path input.
 
@@ -666,10 +676,10 @@ What kind of document processing workflow would you like to create?"""
 
     @step
     async def execute_tools(
-        self, ctx: Context, ev: ToolCallsEvent
+        self, ctx: Context[WorkflowState], ev: ToolCallsEvent
     ) -> InputRequiredEvent | None:
         """Execute tool calls and route to appropriate handlers"""
-        chat_history = await ctx.store.get("chat_history", [])
+        chat_history = (await ctx.store.get_state()).chat_history
 
         for tool_call in ev.tool_calls:
             tool_name = tool_call.tool_name
@@ -690,7 +700,8 @@ What kind of document processing workflow would you like to create?"""
                     action = action_data.get("action")
 
                     # Clear any previous status message
-                    await ctx.store.set("handler_status_message", None)
+                    async with ctx.store.edit_state() as state:
+                        state.handler_status_message = None
 
                     if action == "generate_workflow":
                         handler_result = await handle_generate_workflow(
@@ -731,15 +742,18 @@ What kind of document processing workflow would you like to create?"""
                         handler_result = InputRequiredEvent(prefix="")  # type: ignore
 
                     # Check if handler set a status message and add it to chat history
-                    status_message = await ctx.store.get("handler_status_message")
+                    status_message = (
+                        await ctx.store.get_state()
+                    ).handler_status_message
                     if status_message:
                         chat_history.append(
                             ChatMessage(
                                 role=MessageRole.ASSISTANT, content=status_message
                             )
                         )
-                        await ctx.store.set("chat_history", chat_history)
-                        await ctx.store.set("handler_status_message", None)  # Clear it
+                        async with ctx.store.edit_state() as state:
+                            state.chat_history = chat_history
+                            state.handler_status_message = None
 
                     return handler_result
 

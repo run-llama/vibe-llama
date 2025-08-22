@@ -16,10 +16,11 @@ from pydantic import BaseModel, Field
 from vibe_llama.docuflows.commons.core import generate_runbook, load_context_files
 from vibe_llama.docuflows.diff_editing_workflow import DiffEditingWorkflow
 from vibe_llama.docuflows.commons import CLIFormatter, StreamEvent
+from vibe_llama.docuflows.commons.typed_state import WorkflowState
 
 
 async def handle_edit_workflow(
-    ctx: Context,
+    ctx: Context[WorkflowState],
     edit_request: str,
     llm: LLM,
     conversation_history: Optional[list[ChatMessage]] = None,
@@ -242,7 +243,7 @@ async def handle_edit_workflow(
 
 
 async def handle_generate_runbook_after_diff(
-    ctx: Context, llm: LLM
+    ctx: Context[WorkflowState], llm: LLM
 ) -> InputRequiredEvent:
     """Generate runbook after diff approval (second stage of editing)"""
     pending_workflow = await ctx.store.get("pending_workflow_edit")

@@ -22,7 +22,7 @@ from rich.spinner import Spinner
 
 from vibe_llama.docuflows.commons import CLIFormatter, StreamEvent
 from vibe_llama.docuflows.prompts import AGENT_SYSTEM_PROMPT
-
+from vibe_llama.docuflows.commons.typed_state import WorkflowState
 
 # =============================================================================
 # UTILITY FUNCTIONS
@@ -98,7 +98,9 @@ class ToolCallsEvent(Event):
 # =============================================================================
 
 
-async def handle_slash_command(ctx: Context, command: str) -> InputRequiredEvent:
+async def handle_slash_command(
+    ctx: Context[WorkflowState], command: str
+) -> InputRequiredEvent:
     """Handle slash commands like /help and /config"""
     command = command.lower().strip()
 
@@ -244,7 +246,7 @@ Choose a number (1-10) or type 'cancel' to keep current:
 
 
 async def handle_chat(
-    ctx: Context, user_input: str, llm: LLM, tools: list[BaseTool]
+    ctx: Context[WorkflowState], user_input: str, llm: LLM, tools: list[BaseTool]
 ) -> ToolCallsEvent | InputRequiredEvent | None:
     """Handle regular chat and determine tool calls"""
     chat_history = await ctx.store.get("chat_history", [])

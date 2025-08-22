@@ -8,10 +8,11 @@ from vibe_llama.docuflows.commons import (
     StreamEvent,
     validate_uuid,
 )
+from vibe_llama.docuflows.commons.typed_state import WorkflowState
 
 
 async def handle_configuration(
-    ctx: Context, user_input: str
+    ctx: Context[WorkflowState], user_input: str
 ) -> InputRequiredEvent | None:
     """Handle configuration setup"""
     config = await ctx.store.get("config")
@@ -60,7 +61,7 @@ async def handle_configuration(
         )
 
 
-async def handle_show_config(ctx: Context) -> InputRequiredEvent:
+async def handle_show_config(ctx: Context[WorkflowState]) -> InputRequiredEvent:
     """Show current configuration"""
     config = await ctx.store.get("config")
     config_text = f"""
@@ -79,7 +80,7 @@ Current Configuration:
     return InputRequiredEvent(prefix="\nWhat would you like to do next? ")  # type: ignore
 
 
-async def handle_reconfigure(ctx: Context) -> InputRequiredEvent:
+async def handle_reconfigure(ctx: Context[WorkflowState]) -> InputRequiredEvent:
     """Handle reconfiguration of credentials"""
 
     # Reset configuration state
