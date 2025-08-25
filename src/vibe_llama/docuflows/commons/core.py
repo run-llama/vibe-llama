@@ -28,6 +28,7 @@ from vibe_llama.docuflows.prompts import (
     WORKFLOW_GENERATION_PROMPT,
 )
 from . import CLIFormatter
+from vibe_llama.docuflows.commons.typed_state import WorkflowState
 
 # Environment Variables for the generator
 DEFAULT_PROJECT_ID = os.environ.get("LLAMA_CLOUD_PROJECT_ID", "your-project-id")
@@ -67,7 +68,7 @@ class DocumentComplexityAssessment(BaseModel):
 
 
 def _send_event(
-    ctx: Context | None,  # type: ignore
+    ctx: Context[WorkflowState] | None,  # type: ignore
     message: str,
     end: str = "\n",
     flush: bool = True,
@@ -95,7 +96,7 @@ def _send_event(
 
 def load_context_files(
     data_files_path: str = "core/data_files",
-    ctx: Context | None = None,  # type: ignore
+    ctx: Context[WorkflowState] | None = None,  # type: ignore
 ) -> str:
     """
     Load specific priority context files for workflow generation
@@ -154,7 +155,7 @@ async def load_reference_files(
     reference_files_path: str | None = None,
     project_id: str | None = None,
     organization_id: str | None = None,
-    ctx: Context | None = None,  # type: ignore
+    ctx: Context[WorkflowState] | None = None,  # type: ignore
 ) -> str:
     """
     Load and parse reference files using LlamaParse
@@ -321,7 +322,7 @@ async def generate_workflow(
     organization_id: str | None = None,
     complexity_assessment: DocumentComplexityAssessment | None = None,
     llm: LLM | None = None,
-    ctx: Context | None = None,  # type: ignore
+    ctx: Context[WorkflowState] | None = None,  # type: ignore
 ) -> str:
     """
     Generate a complete workflow based on user task
@@ -485,7 +486,7 @@ async def generate_runbook(
     workflow_code: str,
     user_task: str,
     llm: LLM | None = None,
-    ctx: Context | None = None,  # type: ignore
+    ctx: Context[WorkflowState] | None = None,  # type: ignore
 ) -> str:
     """
     Generate a business-focused runbook from workflow code
@@ -522,7 +523,7 @@ async def generate_runbook(
 def save_workflow(
     workflow_code: str,
     output_path: str = "generated_workflow.py",
-    ctx: Context | None = None,  # type: ignore
+    ctx: Context[WorkflowState] | None = None,  # type: ignore
 ):
     """
     Save the generated workflow to a file
@@ -550,7 +551,7 @@ def save_workflow(
 def save_runbook(
     runbook_content: str,
     output_path: str = "runbook.md",
-    ctx: Context | None = None,  # type: ignore
+    ctx: Context[WorkflowState] | None = None,  # type: ignore
 ):
     """
     Save the generated runbook to a file

@@ -10,9 +10,10 @@ from llama_index.core.prompts import ChatMessage, ChatPromptTemplate
 from pydantic import BaseModel, Field
 from workflows import Context, Workflow, step
 from workflows.events import Event, StartEvent, StopEvent
-from typing import Optional
+from typing import Optional, cast
 
-from .commons import StreamEvent
+from vibe_llama.docuflows.commons import StreamEvent
+from vibe_llama.docuflows.commons.typed_state_editing import EditSessionState
 
 
 class CodeDiff(BaseModel):
@@ -144,19 +145,22 @@ CURRENT CODE:
 ```"""
 
     @step
-    async def start_editing(self, ctx: Context, ev: EditRequest) -> DiffGenerated:
+    async def start_editing(
+        self, ctx: Context[EditSessionState], ev: EditRequest
+    ) -> DiffGenerated:
         """Initialize the editing process."""
 
         # Initialize workflow state
-        await ctx.store.set("current_code", ev.current_workflow)
-        await ctx.store.set("original_request", ev.edit_request)
-        await ctx.store.set("context_str", ev.context_str)
-        await ctx.store.set("original_task", ev.original_task)
-        await ctx.store.set("reference_path", ev.reference_path)
-        await ctx.store.set("recent_context", ev.recent_context)
-        await ctx.store.set("max_iterations", ev.max_iterations)
-        await ctx.store.set("edit_history", [])
-        await ctx.store.set("iteration", 1)
+        async with ctx.store.edit_state() as state:
+            state.current_code = ev.current_workflow
+            state.original_request = ev.edit_request
+            state.context_str = ev.context_str
+            state.original_task = ev.original_task
+            state.reference_path = ev.reference_path
+            state.recent_context = ev.recent_context
+            state.max_iterations = ev.max_iterations
+            state.edit_history = []
+            state.iteration = 1
 
         ctx.write_event_to_stream(
             StreamEvent(  # type: ignore
@@ -168,17 +172,21 @@ CURRENT CODE:
         return await self._generate_diff_plan(ctx, ev.edit_request, 1)
 
     @step
-    async def apply_diffs(self, ctx: Context, ev: DiffGenerated) -> DiffsApplied:
+    async def apply_diffs(
+        self, ctx: Context[EditSessionState], ev: DiffGenerated
+    ) -> DiffsApplied:
         """Apply the generated diffs to the code."""
 
         if not ev.diff_plan.diffs:
             ctx.write_event_to_stream(StreamEvent(delta="✅ No changes needed.\n"))  # type: ignore
-            current_code = await ctx.store.get("current_code")
+            current_code = (await ctx.store.get_state()).current_code
             return DiffsApplied(
-                updated_code=current_code, applied_changes=[], iteration=ev.iteration
+                updated_code=cast(str, current_code),
+                applied_changes=[],
+                iteration=ev.iteration,
             )
 
-        current_code = await ctx.store.get("current_code")
+        current_code = (await ctx.store.get_state()).current_code
 
         # Show planned changes
         ctx.write_event_to_stream(
@@ -191,7 +199,7 @@ CURRENT CODE:
         )
 
         # Apply diffs
-        working_code = current_code
+        working_code = cast(str, current_code)
         applied_changes = []
 
         for i, diff in enumerate(ev.diff_plan.diffs, 1):
@@ -229,7 +237,8 @@ CURRENT CODE:
             ctx.write_event_to_stream(StreamEvent(delta="    ✅ Applied\n"))  # type: ignore
 
         # Update stored code
-        await ctx.store.set("current_code", working_code)
+        async with ctx.store.edit_state() as state:
+            state.current_code = working_code
 
         return DiffsApplied(
             updated_code=working_code,
@@ -239,17 +248,17 @@ CURRENT CODE:
 
     @step
     async def validate_code(
-        self, ctx: Context, ev: DiffsApplied
+        self, ctx: Context[EditSessionState], ev: DiffsApplied
     ) -> ValidationCompleted:
         """Validate the updated code."""
 
         ctx.write_event_to_stream(StreamEvent(delta="🔍 Validating changes...\n"))  # type: ignore
 
-        original_request = await ctx.store.get("original_request")
-        original_task = await ctx.store.get("original_task")
+        original_request = (await ctx.store.get_state()).original_request
+        original_task = (await ctx.store.get_state()).original_task
 
         # Store this iteration in history
-        edit_history = await ctx.store.get("edit_history")
+        edit_history = (await ctx.store.get_state()).edit_history
         edit_history.append(
             {
                 "iteration": ev.iteration,
@@ -262,19 +271,20 @@ CURRENT CODE:
                 else ev.updated_code,
             }
         )
-        await ctx.store.set("edit_history", edit_history)
+        async with ctx.store.edit_state() as state:
+            state.edit_history = edit_history
 
-        context_str = await ctx.store.get("context_str")
-        reference_path = await ctx.store.get("reference_path")
-        recent_context = await ctx.store.get("recent_context")
+        context_str = (await ctx.store.get_state()).context_str
+        reference_path = (await ctx.store.get_state()).reference_path
+        recent_context = (await ctx.store.get_state()).recent_context
 
         validation = await self._validate_code(
             ev.updated_code,
-            original_request,
-            original_task,
-            context_str,
-            reference_path,
-            recent_context,
+            cast(str, original_request),
+            cast(str, original_task),
+            cast(str, context_str),
+            cast(str, reference_path),
+            cast(str, recent_context),
         )
 
         return ValidationCompleted(
@@ -283,12 +293,12 @@ CURRENT CODE:
 
     @step
     async def check_completion(
-        self, ctx: Context, ev: ValidationCompleted
+        self, ctx: Context[EditSessionState], ev: ValidationCompleted
     ) -> DiffGenerated | EditCompleted:
         """Check if editing is complete or if another iteration is needed."""
 
-        max_iterations = await ctx.store.get("max_iterations")
-        edit_history = await ctx.store.get("edit_history")
+        max_iterations = (await ctx.store.get_state()).max_iterations
+        edit_history = (await ctx.store.get_state()).edit_history
 
         if ev.validation.is_valid:
             ctx.write_event_to_stream(StreamEvent(delta="✅ Validation passed!\n"))  # type: ignore
@@ -304,7 +314,7 @@ CURRENT CODE:
                 total_iterations=ev.iteration,
             )
 
-        elif ev.iteration < max_iterations:
+        elif ev.iteration < cast(int, max_iterations):
             ctx.write_event_to_stream(
                 StreamEvent(  # type: ignore
                     delta=f"⚠️ Issues found: {', '.join(ev.validation.issues_found)}\n"
@@ -321,7 +331,8 @@ CURRENT CODE:
             )
 
             next_iteration = ev.iteration + 1
-            await ctx.store.set("iteration", next_iteration)
+            async with ctx.store.edit_state() as state:
+                state.iteration = next_iteration
 
             return await self._generate_diff_plan(ctx, new_edit_request, next_iteration)
 
@@ -344,7 +355,7 @@ CURRENT CODE:
             )
 
     async def _generate_diff_plan(
-        self, ctx: Context, edit_request: str, iteration: int
+        self, ctx: Context[EditSessionState], edit_request: str, iteration: int
     ) -> DiffGenerated:
         """Generate a plan of diffs to apply."""
 

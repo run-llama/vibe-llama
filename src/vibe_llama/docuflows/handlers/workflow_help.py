@@ -47,7 +47,7 @@ async def handle_answer_question(
     ctx: Context[WorkflowState], question: str, llm: LLM
 ) -> InputRequiredEvent:
     """Answer questions about the current workflow with full context"""
-    current_workflow = await ctx.store.get("current_workflow")
+    current_workflow = (await ctx.store.get_state()).current_workflow
 
     if not current_workflow:
         ctx.write_event_to_stream(
@@ -90,10 +90,10 @@ Please provide a helpful and detailed answer about the workflow, referencing spe
                 ctx.write_event_to_stream(StreamEvent(delta=r.delta))  # type: ignore
 
         # Set status message for chat history
-        await ctx.store.set(
-            "handler_status_message",
-            f"Answered question about the workflow: '{question}'",
-        )
+        async with ctx.store.edit_state() as state:
+            state.handler_status_message = (
+                f"Answered question about the workflow: '{question}'"
+            )
 
         return InputRequiredEvent(
             prefix="\n\nAny other questions? Or what would you like to do next? "  # type: ignore
@@ -104,10 +104,10 @@ Please provide a helpful and detailed answer about the workflow, referencing spe
             StreamEvent(delta=f"❌ Error answering question: {str(e)}\n")  # type: ignore
         )
         # Set error status message for chat history
-        await ctx.store.set(
-            "handler_status_message",
-            f"Failed to answer question due to error: {str(e)}",
-        )
+        async with ctx.store.edit_state() as state:
+            state.handler_status_message = (
+                f"Failed to answer question due to error: {str(e)}"
+            )
 
         return InputRequiredEvent(
             prefix="Please try asking again. What would you like to do? "  # type: ignore

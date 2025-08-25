@@ -8,6 +8,7 @@ import asyncio
 import os
 import sys
 from pathlib import Path
+from typing import cast
 
 from llama_index.core.llms import LLM, MessageRole
 from llama_index.core.prompts import ChatMessage
@@ -40,7 +41,7 @@ async def handle_test_workflow(
     ctx: Context[WorkflowState], test_file_path: str, llm=None
 ) -> InputRequiredEvent:
     """Test the current workflow by actually running it as a subprocess"""
-    current_workflow = await ctx.store.get("current_workflow")
+    current_workflow = (await ctx.store.get_state()).current_workflow
 
     if not current_workflow:
         ctx.write_event_to_stream(
@@ -50,7 +51,7 @@ async def handle_test_workflow(
         )
         return InputRequiredEvent(prefix="What would you like to do? ")  # type: ignore
 
-    workflow_path = await ctx.store.get("current_workflow_path")
+    workflow_path = (await ctx.store.get_state()).current_workflow_path
     if not workflow_path or not os.path.exists(workflow_path):
         ctx.write_event_to_stream(
             StreamEvent(delta="❌ No workflow file found to execute.\n")  # type: ignore
@@ -58,8 +59,8 @@ async def handle_test_workflow(
         return InputRequiredEvent(prefix="What would you like to do? ")  # type: ignore
 
     # Check for cached analysis first
-    cached_analysis = await ctx.store.get("workflow_analysis_cache", None)
-    cached_workflow_path = await ctx.store.get("workflow_analysis_cache_path", None)
+    cached_analysis = (await ctx.store.get_state()).workflow_analysis_cache
+    cached_workflow_path = (await ctx.store.get_state()).workflow_analysis_cache_path
 
     if cached_analysis and cached_workflow_path == workflow_path:
         analysis = cached_analysis
@@ -98,8 +99,9 @@ async def handle_test_workflow(
                 needs_input = analysis.get("accepts_input_files", True)
 
         # Cache the analysis
-        await ctx.store.set("workflow_analysis_cache", analysis)
-        await ctx.store.set("workflow_analysis_cache_path", workflow_path)
+        async with ctx.store.edit_state() as state:
+            state.workflow_analysis_cache = analysis
+            state.workflow_analysis_cache_path = workflow_path
 
     # If workflow needs input files but none provided, handle that
     if needs_input and not test_file_path:
@@ -118,7 +120,7 @@ async def handle_test_file_input(
 ) -> InputRequiredEvent:
     """Handle the case where we need to get test file input from user"""
     return InputRequiredEvent(
-        prefix="Please provide the path to a sample file to test: ",
+        prefix="Please provide the path to a sample file to test: ",  # type: ignore
         tag="test_workflow",  # type: ignore
     )
 
@@ -139,7 +141,7 @@ async def handle_test_file_validation(
                 )
             )
             return InputRequiredEvent(
-                prefix="Please provide a valid file path to test: ",
+                prefix="Please provide a valid file path to test: ",  # type: ignore
                 tag="test_workflow",  # type: ignore
             )
 
@@ -170,13 +172,15 @@ async def handle_test_file_validation(
             StreamEvent(delta=f"❌ Test file does not exist: {test_file_path}\n")  # type: ignore
         )
         return InputRequiredEvent(
-            prefix="Please provide a valid file path to test: ",
+            prefix="Please provide a valid file path to test: ",  # type: ignore
             tag="test_workflow",  # type: ignore
         )
 
     # File exists, proceed to execute workflow
-    workflow_path = await ctx.store.get("current_workflow_path")
-    return await execute_workflow(ctx, workflow_path, test_file_path, llm, analysis)
+    workflow_path = (await ctx.store.get_state()).current_workflow_path
+    return await execute_workflow(
+        ctx, cast(str, workflow_path), test_file_path, llm, analysis
+    )
 
 
 async def execute_workflow(
@@ -351,20 +355,17 @@ async def execute_workflow(
         )
 
     # Clear analysis cache after execution (whether successful or not)
-    await ctx.store.set("workflow_analysis_cache", None)
-    await ctx.store.set("workflow_analysis_cache_path", None)
+    async with ctx.store.edit_state() as state:
+        state.workflow_analysis_cache = None
+        state.workflow_analysis_cache_path = None
 
     # Set status message for chat history
     if return_code == 0:  # type: ignore
-        await ctx.store.set(
-            "handler_status_message",
-            "Successfully tested the workflow. The execution completed without errors.",
-        )
+        async with ctx.store.edit_state() as state:
+            state.handler_status_message = "Successfully tested the workflow. The execution completed without errors."
     else:
-        await ctx.store.set(
-            "handler_status_message",
-            f"Workflow testing failed with exit code {return_code}. Please check the errors above and fix the workflow if needed.",  # type: ignore
-        )
+        async with ctx.store.edit_state() as state:
+            state.handler_status_message = f"Workflow testing failed with exit code {return_code}. Please check the errors above and fix the workflow if needed."  # type: ignore
 
     return InputRequiredEvent(
         prefix="\nWorkflow testing complete! What would you like to do next? "  # type: ignore
@@ -496,10 +497,8 @@ Examples:
             )
         )
         # Set status message for chat history
-        await ctx.store.set(
-            "handler_status_message",
-            f"Selected file '{os.path.relpath(matched_file, base_directory)}' for testing based on user description: '{user_input}'",
-        )
+        async with ctx.store.edit_state() as state:
+            state.handler_status_message = f"Selected file '{os.path.relpath(matched_file, base_directory)}' for testing based on user description: '{user_input}'"
 
         return await handle_test_workflow(ctx, matched_file, llm)
     else:
@@ -509,10 +508,10 @@ Examples:
             )
         )
         # Set error status message for chat history
-        await ctx.store.set(
-            "handler_status_message",
-            f"Could not locate file matching description: '{user_input}'",
-        )
+        async with ctx.store.edit_state() as state:
+            state.handler_status_message = (
+                f"Could not locate file matching description: '{user_input}'"
+            )
 
         return InputRequiredEvent(
             prefix="Please try again with a different description: ",  # type: ignore

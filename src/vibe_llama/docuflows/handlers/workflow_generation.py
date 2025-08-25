@@ -7,6 +7,7 @@ Handles generating new workflows from natural language descriptions.
 import os
 import re
 
+from typing import cast
 from llama_index.core.llms import LLM, MessageRole
 from llama_index.core.prompts import ChatPromptTemplate
 from llama_index.core.prompts import ChatMessage
@@ -27,6 +28,7 @@ from vibe_llama.docuflows.commons import (
     clean_file_path,
     validate_reference_path,
 )
+from vibe_llama.docuflows.agent.utils import AgentConfig
 from vibe_llama.docuflows.commons.typed_state import WorkflowState
 
 
@@ -120,7 +122,7 @@ async def handle_generate_workflow(
     ctx: Context[WorkflowState], task: str, reference_files_path: str, llm: LLM
 ) -> InputRequiredEvent:
     """Generate a new workflow"""
-    config = await ctx.store.get("config")
+    config = cast(AgentConfig, (await ctx.store.get_state()).config)
 
     if not task:
         examples_text = """
@@ -273,15 +275,17 @@ async def handle_generate_workflow(
         )
 
         # Store the workflow and generation context (after runbook is generated)
-        await ctx.store.set("current_workflow", workflow_code)
-        await ctx.store.set("current_runbook", runbook_content)
-        await ctx.store.set("generation_task", task)
-        await ctx.store.set("generation_reference_path", reference_files_path)
+        async with ctx.store.edit_state() as state:
+            state.current_workflow = workflow_code
+            state.current_runbook = runbook_content
+            state.generation_task = task
+            state.generation_reference_path = reference_files_path
 
         # Store the workflow and runbook temporarily (don't save to file yet)
-        await ctx.store.set("pending_workflow", workflow_code)
-        await ctx.store.set("pending_runbook", runbook_content)
-        await ctx.store.set("pending_task", task)
+        async with ctx.store.edit_state() as state:
+            state.pending_workflow = workflow_code
+            state.pending_runbook = runbook_content
+            state.pending_task = task
 
         # Generate a default folder name suggestion
         safe_task_name = re.sub(r"[^\w\s-]", "", task)[:40].strip().replace(" ", "_")
@@ -289,10 +293,8 @@ async def handle_generate_workflow(
 
         # Ask user for folder name with default option
         # Set status message for chat history
-        await ctx.store.set(
-            "handler_status_message",
-            f"Successfully generated workflow for task: '{task}'. The workflow and runbook are ready to be saved.",
-        )
+        async with ctx.store.edit_state() as state:
+            state.handler_status_message = f"Successfully generated workflow for task: '{task}'. The workflow and runbook are ready to be saved."
 
         ctx.write_event_to_stream(
             StreamEvent(  # type: ignore
@@ -306,8 +308,8 @@ async def handle_generate_workflow(
         )
 
         return InputRequiredEvent(
-            prefix="",
-            tag="folder_name_input",
+            prefix="",  # type: ignore
+            tag="folder_name_input",  # type: ignore
             default_folder_name=default_folder_name,  # type: ignore
         )
 
@@ -338,10 +340,10 @@ You can:
             )
 
         # Set error status message for chat history
-        await ctx.store.set(
-            "handler_status_message",
-            f"Failed to generate workflow due to error: {error_msg}",
-        )
+        async with ctx.store.edit_state() as state:
+            state.handler_status_message = (
+                f"Failed to generate workflow due to error: {error_msg}"
+            )
 
         ctx.write_event_to_stream(
             StreamEvent(  # type: ignore
@@ -407,31 +409,33 @@ async def handle_folder_name_input(
         )
 
     # Create the workflow folder
-    config = await ctx.store.get("config")
+    config = cast(AgentConfig, (await ctx.store.get_state()).config)
     output_dir = getattr(config, "output_directory", "generated_workflows")
     folder_path = create_workflow_folder(final_folder_name, output_dir)
 
     # Save the workflow and runbook to the folder
-    pending_workflow = await ctx.store.get("pending_workflow")
-    pending_runbook = await ctx.store.get("pending_runbook")
+    pending_workflow = (await ctx.store.get_state()).pending_workflow
+    pending_runbook = (await ctx.store.get_state()).pending_runbook
 
     workflow_file_path = os.path.join(folder_path, "workflow.py")
     runbook_file_path = os.path.join(folder_path, "runbook.md")
 
-    save_workflow(pending_workflow, workflow_file_path, ctx)
-    save_runbook(pending_runbook, runbook_file_path, ctx)
+    save_workflow(cast(str, pending_workflow), workflow_file_path, ctx)
+    save_runbook(cast(str, pending_runbook), runbook_file_path, ctx)
 
     # Update context store
-    await ctx.store.set("current_workflow", pending_workflow)
-    await ctx.store.set("current_runbook", pending_runbook)
-    await ctx.store.set("current_workflow_path", workflow_file_path)
-    await ctx.store.set("current_runbook_path", runbook_file_path)
-    await ctx.store.set("current_folder_path", folder_path)
+    async with ctx.store.edit_state() as state:
+        state.current_workflow = pending_workflow
+        state.current_runbook = pending_runbook
+        state.current_workflow_path = workflow_file_path
+        state.current_runbook_path = runbook_file_path
+        state.current_folder_path = folder_path
 
     # Clear pending data
-    await ctx.store.set("pending_workflow", None)
-    await ctx.store.set("pending_runbook", None)
-    await ctx.store.set("pending_task", None)
+    async with ctx.store.edit_state() as state:
+        state.pending_workflow = None
+        state.pending_runbook = None
+        state.pending_task = None
 
     ctx.write_event_to_stream(
         StreamEvent(  # type: ignore
@@ -459,10 +463,8 @@ async def handle_folder_name_input(
     )
 
     # Set status message for chat history
-    await ctx.store.set(
-        "handler_status_message",
-        f"Successfully saved workflow to {folder_path}. The workflow is now ready for testing, editing, or questions.",
-    )
+    async with ctx.store.edit_state() as state:
+        state.handler_status_message = f"Successfully saved workflow to {folder_path}. The workflow is now ready for testing, editing, or questions."
 
     ctx.write_event_to_stream(
         StreamEvent(  # type: ignore

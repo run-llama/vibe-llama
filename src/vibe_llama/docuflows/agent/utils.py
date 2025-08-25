@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Any
+from typing import Any, cast
 
 from llama_index.core.llms import LLM, MessageRole
 from llama_index.core.prompts import ChatMessage
@@ -105,7 +105,7 @@ async def handle_slash_command(
     command = command.lower().strip()
 
     if command == "/help":
-        current_model = await ctx.store.get("current_model", "gpt-4.1")
+        current_model = (await ctx.store.get_state()).current_model or "gpt-4.1"
         help_text = f"""
 🎵 **vibe-llama docuflows - Slash Commands**
 
@@ -145,7 +145,7 @@ Available commands:
         return InputRequiredEvent(prefix="")  # type: ignore
 
     elif command == "/config":
-        config = await ctx.store.get("config")
+        config = cast(AgentConfig, (await ctx.store.get_state()).config)
 
         config_text = f"""
 🔧 **Current Configuration:**
@@ -179,9 +179,9 @@ Available commands:
         )
 
     elif command == "/model":
-        current_model = await ctx.store.get("current_model")
+        current_model = (await ctx.store.get_state()).current_model
         if not current_model:
-            config = await ctx.store.get("config")
+            config = cast(AgentConfig, (await ctx.store.get_state()).config)
             current_model = config.current_model
 
         model_text = f"""
@@ -249,11 +249,12 @@ async def handle_chat(
     ctx: Context[WorkflowState], user_input: str, llm: LLM, tools: list[BaseTool]
 ) -> ToolCallsEvent | InputRequiredEvent | None:
     """Handle regular chat and determine tool calls"""
-    chat_history = await ctx.store.get("chat_history", [])
+    chat_history = (await ctx.store.get_state()).chat_history
 
     # Add user message to history
     chat_history.append(ChatMessage(role=MessageRole.USER, content=user_input))
-    await ctx.store.set("chat_history", chat_history)
+    async with ctx.store.edit_state() as state:
+        state.chat_history = chat_history
 
     # Prepare full chat history with system message
     full_chat_history = [
@@ -305,7 +306,8 @@ async def handle_chat(
         chat_history.append(
             ChatMessage(role=MessageRole.ASSISTANT, content=full_response)
         )
-        await ctx.store.set("chat_history", chat_history)
+        async with ctx.store.edit_state() as state:
+            state.chat_history = chat_history
 
         ctx.write_event_to_stream(
             StreamEvent(  # type: ignore

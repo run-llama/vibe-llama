@@ -60,8 +60,9 @@ async def handle_load_workflow(
             workflow_code = f.read()
 
         # Store as current workflow
-        await ctx.store.set("current_workflow", workflow_code)
-        await ctx.store.set("current_workflow_path", cleaned_path)
+        async with ctx.store.edit_state() as state:
+            state.current_workflow = workflow_code
+            state.current_workflow_path = cleaned_path
 
         # Try to load runbook if it exists in the same directory
         workflow_dir = os.path.dirname(cleaned_path)
@@ -69,8 +70,9 @@ async def handle_load_workflow(
         if os.path.exists(runbook_path):
             with open(runbook_path) as f:
                 runbook_content = f.read()
-            await ctx.store.set("current_runbook", runbook_content)
-            await ctx.store.set("current_runbook_path", runbook_path)
+            async with ctx.store.edit_state() as state:
+                state.current_runbook = runbook_content
+                state.current_runbook_path = runbook_path
 
         ctx.write_event_to_stream(
             StreamEvent(delta=f"✅ Loaded workflow from: {cleaned_path}\n")  # type: ignore
@@ -100,10 +102,8 @@ async def handle_load_workflow(
         )
 
         # Set status message for chat history
-        await ctx.store.set(
-            "handler_status_message",
-            f"Successfully loaded workflow from {cleaned_path}. The workflow is now active and ready for testing, editing, or questions.",
-        )
+        async with ctx.store.edit_state() as state:
+            state.handler_status_message = f"Successfully loaded workflow from {cleaned_path}. The workflow is now active and ready for testing, editing, or questions."
 
         return InputRequiredEvent(
             prefix="\nWorkflow loaded! You can now:\n"  # type: ignore

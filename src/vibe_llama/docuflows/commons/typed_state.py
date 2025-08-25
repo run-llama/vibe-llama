@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Dict
 
 
 class WorkflowState(BaseModel):
@@ -29,10 +29,21 @@ class WorkflowState(BaseModel):
         None, description="Workflow being edited"
     )
 
+    pending_workflow: Optional[str] = Field(
+        default_factory=str, description="Pending workflow"
+    )
+    pending_runbook: Optional[str] = Field(
+        default_factory=str, description="Pending runbook"
+    )
+    pending_task: Optional[str] = Field(default_factory=str, description="Pending task")
+
     # Runbook management
     current_runbook: Optional[str] = Field(None, description="Current runbook content")
     current_runbook_path: Optional[str] = Field(
         None, description="Path to current runbook file"
+    )
+    current_folder_path: str = Field(
+        default_factory=str, description="Current folder path"
     )
     pending_runbook_edit: Optional[Any] = Field(
         None, description="Runbook being edited"
@@ -46,6 +57,19 @@ class WorkflowState(BaseModel):
     # Status and messaging
     handler_status_message: Optional[str] = Field(
         None, description="Current handler status message"
+    )
+
+    generation_task: str = Field(default_factory=str, description="Generation task")
+
+    generation_reference_path: str = Field(
+        default_factory=str, description="Reference path for generation"
+    )
+
+    workflow_analysis_cache: Optional[Dict[str, Any]] = Field(
+        default=None, description="Workflow analysis cache"
+    )
+    workflow_analysis_cache_path: Optional[str] = Field(
+        default=None, description="Path for workflow analysis cache"
     )
 
     class Config:

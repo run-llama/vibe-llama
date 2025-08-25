@@ -14,7 +14,7 @@ from llama_index.core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
 from vibe_llama.docuflows.commons.core import generate_runbook, load_context_files
-from vibe_llama.docuflows.diff_editing_workflow import DiffEditingWorkflow
+from vibe_llama.docuflows.editing import DiffEditingWorkflow
 from vibe_llama.docuflows.commons import CLIFormatter, StreamEvent
 from vibe_llama.docuflows.commons.typed_state import WorkflowState
 
@@ -28,11 +28,11 @@ async def handle_edit_workflow(
     """Edit the current workflow using diff-based iterative editing."""
     # Use pending workflow edit as the starting point if it exists (for iterative editing)
     # Otherwise fall back to the current workflow
-    pending_workflow = await ctx.store.get("pending_workflow_edit", None)
+    pending_workflow = (await ctx.store.get_state()).pending_workflow_edit
     current_workflow = (
         pending_workflow
         if pending_workflow
-        else await ctx.store.get("current_workflow")
+        else (await ctx.store.get_state()).current_workflow
     )
 
     if not current_workflow:
@@ -77,15 +77,15 @@ async def handle_edit_workflow(
         context_str = load_context_files("core/data_files", ctx)
 
         # Get generation context
-        original_task = await ctx.store.get("generation_task", "")
-        reference_path = await ctx.store.get("generation_reference_path", "")
+        original_task = (await ctx.store.get_state()).generation_task
+        reference_path = (await ctx.store.get_state()).generation_reference_path
 
         # Use provided conversation history or fall back to general chat history
         if conversation_history:
             recent_context = conversation_history
         else:
             # Get recent chat history for additional context (legacy behavior)
-            chat_history = await ctx.store.get("chat_history", [])
+            chat_history = (await ctx.store.get_state()).chat_history
             recent_context = ""
             if len(chat_history) > 4:
                 recent_messages = chat_history[-4:]
@@ -126,8 +126,9 @@ async def handle_edit_workflow(
         )
 
         # Store the edited workflow temporarily for FIRST review (diff only)
-        await ctx.store.set("pending_workflow_edit", edited_workflow)
-        await ctx.store.set("edit_session_history", edit_history)
+        async with ctx.store.edit_state() as state:
+            state.pending_workflow_edit = edited_workflow
+            state.edit_session_history = edit_history
 
         # Generate and show diff
 
@@ -174,7 +175,7 @@ async def handle_edit_workflow(
             )
 
         # Update editing conversation history with this session
-        edit_conversation = await ctx.store.get("edit_conversation_history", [])
+        edit_conversation = (await ctx.store.get_state()).edit_conversation_history
 
         # Add user's edit request
         edit_conversation.append(
@@ -188,7 +189,8 @@ async def handle_edit_workflow(
         edit_conversation.append(
             ChatMessage(role=MessageRole.ASSISTANT, content=assistant_response)
         )
-        await ctx.store.set("edit_conversation_history", edit_conversation)
+        async with ctx.store.edit_state() as state:
+            state.edit_conversation_history = edit_conversation
 
         # Show edit session summary
         if edit_history:
@@ -202,10 +204,8 @@ async def handle_edit_workflow(
             )
 
         # Set status message for chat history
-        await ctx.store.set(
-            "handler_status_message",
-            f"Successfully edited workflow using diff-based approach: '{edit_request}'. Applied {result.total_iterations} iterations of changes.",
-        )
+        async with ctx.store.edit_state() as state:
+            state.handler_status_message = f"Successfully edited workflow using diff-based approach: '{edit_request}'. Applied {result.total_iterations} iterations of changes."
 
         ctx.write_event_to_stream(
             StreamEvent(  # type: ignore
@@ -227,9 +227,10 @@ async def handle_edit_workflow(
             )
         )
         # Set error status message for chat history
-        await ctx.store.set(
-            "handler_status_message", f"Failed to edit workflow due to error: {str(e)}"
-        )
+        async with ctx.store.edit_state() as state:
+            state.handler_status_message = (
+                f"Failed to edit workflow due to error: {str(e)}"
+            )
 
         ctx.write_event_to_stream(
             StreamEvent(  # type: ignore
@@ -246,7 +247,7 @@ async def handle_generate_runbook_after_diff(
     ctx: Context[WorkflowState], llm: LLM
 ) -> InputRequiredEvent:
     """Generate runbook after diff approval (second stage of editing)"""
-    pending_workflow = await ctx.store.get("pending_workflow_edit")
+    pending_workflow = (await ctx.store.get_state()).pending_workflow_edit
 
     if not pending_workflow:
         ctx.write_event_to_stream(
@@ -274,7 +275,7 @@ async def handle_generate_runbook_after_diff(
 
     try:
         # Get context for runbook generation
-        await ctx.store.get("generation_task", "")
+        (await ctx.store.get_state()).generation_task
         edit_request = "Updated workflow based on user edits"
 
         updated_runbook = await generate_runbook(
@@ -282,7 +283,8 @@ async def handle_generate_runbook_after_diff(
         )
 
         # Store runbook for final review
-        await ctx.store.set("pending_runbook_edit", updated_runbook)
+        async with ctx.store.edit_state() as state:
+            state.pending_runbook_edit = updated_runbook
 
         ctx.write_event_to_stream(
             StreamEvent(rich_content=CLIFormatter.indented_text(""), newline_after=True)  # type: ignore
@@ -308,10 +310,8 @@ async def handle_generate_runbook_after_diff(
         )
 
         # Set status message for chat history
-        await ctx.store.set(
-            "handler_status_message",
-            "Generated updated runbook after diff approval. Both workflow and runbook are ready for final save.",
-        )
+        async with ctx.store.edit_state() as state:
+            state.handler_status_message = "Generated updated runbook after diff approval. Both workflow and runbook are ready for final save."
 
         ctx.write_event_to_stream(
             StreamEvent(
@@ -333,14 +333,13 @@ async def handle_generate_runbook_after_diff(
             )
         )
         # Fallback: keep current runbook and proceed to final review
-        current_runbook = await ctx.store.get("current_runbook", "")
-        await ctx.store.set("pending_runbook_edit", current_runbook)
+        current_runbook = (await ctx.store.get_state()).current_runbook
+        async with ctx.store.edit_state() as state:
+            state.pending_runbook_edit = current_runbook
 
         # Set error status message for chat history
-        await ctx.store.set(
-            "handler_status_message",
-            f"Failed to generate updated runbook: {str(e)}. Proceeding with code changes only.",
-        )
+        async with ctx.store.edit_state() as state:
+            state.handler_status_message = f"Failed to generate updated runbook: {str(e)}. Proceeding with code changes only."
 
         ctx.write_event_to_stream(
             StreamEvent(
