@@ -66,7 +66,7 @@ def test__send_event(ctx: Context[WorkflowState]) -> None:
 
 def test_load_context_files(dir_path: str, ctx: Context[WorkflowState]) -> None:
     retval = load_context_files(dir_path, ctx)
-    assert retval == "llama-index-workflows.md:\n# This is a file"
+    assert retval == "llama-index-workflows.md:\n# This is a file\n"
 
 
 @pytest.mark.asyncio
