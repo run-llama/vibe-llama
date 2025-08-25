@@ -25,18 +25,6 @@ from vibe_llama.docuflows.commons import (
 from vibe_llama.docuflows.commons.typed_state import WorkflowState
 
 
-def clean_file_path(path: str) -> str:
-    """Clean file path by removing @ symbol and normalizing path"""
-    if path.startswith("@"):
-        path = path[1:]  # Remove @ symbol
-
-    # Convert to absolute path and normalize
-    if path.startswith("./"):
-        path = path[2:]  # Remove './'
-
-    return os.path.abspath(path) if path else path
-
-
 async def handle_test_workflow(
     ctx: Context[WorkflowState], test_file_path: str, llm=None
 ) -> InputRequiredEvent:

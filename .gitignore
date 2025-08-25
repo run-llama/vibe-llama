@@ -16,8 +16,9 @@ logs/
 # caches
 *cache/
 
-# ai agent config
+# ai-generated files
 .ai_agent_config.json
+generated_workflows/
 
 # data folder
-data/
+data/invoices/
