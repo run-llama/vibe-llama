@@ -2,12 +2,16 @@
 
 import argparse
 import asyncio
+from rich.console import Console
 
 from .starter import starter, agent_rules, services
+from .docuflows import run_cli
 from .logo import print_logo
 
 
 def main() -> None:
+    console = Console()
+
     parser = argparse.ArgumentParser(
         prog="vibe-llama",
         description="vibe-llama is a command-line tool to help you get started in the LlamIndex ecosystem with the help of vibe coding.",
@@ -20,6 +24,11 @@ def main() -> None:
     starter_parser = subparsers.add_parser(
         "starter",
         help="starter provides your coding agents with up-to-date documentation about LlamIndex, LlamaCloud Services and llama-index-workflows, so that they can build reliable and working applications! You can launch a terminal user interface by running `vibe-llama starter` or you can directly pass your agent (-a, --agent flag) and chosen service (-s, --service flag).",
+    )
+
+    _ = subparsers.add_parser(
+        "docuflows",
+        help="docuflows is a CLI agent that enables you to build workflows that are oriented to intelligent document processing (combining llama-index-workflows and LlamCloud). Running `vibe-llama docuflows` will start the agent.",
     )
 
     starter_parser.add_argument(
@@ -54,5 +63,11 @@ def main() -> None:
     if args.command == "starter":
         print_logo()
         asyncio.run(starter(args.agent, args.service, args.verbose))
+    elif args.command == "docuflows":
+        print_logo()
+        try:
+            asyncio.run(run_cli())
+        except KeyboardInterrupt:
+            console.print("\n👋 Goodbye!", style="bold yellow")
 
     return None
