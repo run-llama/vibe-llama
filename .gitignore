@@ -19,7 +19,7 @@ logs/
 # ai-generated files
 .ai_agent_config.json
 generated_workflows/
-AGENTS.md
+.vibe-llama/
 
 # data folder
 data/invoices/

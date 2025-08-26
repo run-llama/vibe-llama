@@ -109,7 +109,13 @@ vibe-llama docuflows
 
 > [!NOTE]
 >
-> _`vibe-llama docuflows` uses **AGENTS.md** as an instructions file. If you wish, you can directly create AGENTS.md with the `starter` command, by selecting `vibe-llama docuflows` as your agent. Alternatively, if an AGENTS.md is not present in your environment, `vibe-llama docuflows` will create one on the fly._
+> _`vibe-llama docuflows` uses **AGENTS.md** as an instructions file (located under `.vibe-llama/rules/`). If you wish, you can directly create AGENTS.md with the `starter` command, by selecting `vibe-llama docuflows` as your agent. Alternatively, if an AGENTS.md is not present in your environment, `vibe-llama docuflows` will create one on the fly._
+
+During an open session with `docuflows`, you will be prompted to configure your LlamaCloud settings (project and organization ID are required for this step), and then you will be able to create or edit workflows.
+
+During the editing or generation process, you will be asked to provide reference files for your workflow (e.g. an invoice file if you are asking for an invoice-processing workflow), so make sure to prepare them.
+
+Once the workflow generation/editing is finished, you will be able to save the code and the code-related explanation in a folder that will be created under `generated_workflows/`. In the folder you will find a `workflow.py` file, containing the code, and a `runbook.md` file, containing instructions and explanations related to the code.
 
 ## SDK
 

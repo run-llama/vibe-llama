@@ -118,11 +118,14 @@ async def load_context_files(
 
     try:
         # Check if AGENTS.md exists
-        if not os.path.exists("AGENTS.md"):
-            _send_event(ctx, "Warning: 'AGENTS.md' not found, generating it...")
+        if not os.path.exists(".vibe-llama/rules/AGENTS.md"):
+            _send_event(
+                ctx,
+                "Warning: '.vibe-llama/rules/AGENTS.md' not found, generating it...",
+            )
             await get_docs()
 
-        with open("AGENTS.md", "r") as f:
+        with open(".vibe-llama/rules/AGENTS.md", "r") as f:
             content = f.read()
 
     except Exception as e:
