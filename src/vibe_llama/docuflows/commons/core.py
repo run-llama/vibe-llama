@@ -22,6 +22,7 @@ from pydantic import BaseModel, Field
 # Import for event streaming (optional to support legacy usage)
 from workflows import Context
 from . import StreamEvent
+from vibe_llama.sdk import VibeLlamaStarter
 
 from vibe_llama.docuflows.prompts import (
     RUNBOOK_GENERATION_PROMPT,
@@ -36,6 +37,14 @@ DEFAULT_ORGANIZATION_ID = os.environ.get("LLAMA_CLOUD_ORG_ID", "your-organizatio
 
 # Initialize default LLM for code generation
 DEFAULT_LLM = OpenAI(model="gpt-5")
+DOCS_STARTER = VibeLlamaStarter(
+    agents=["vibe-llama docuflows"],
+    services=["llama-index-workflows", "LlamaCloud Services"],
+)
+
+
+async def get_docs():
+    await DOCS_STARTER.write_instructions()
 
 
 class DocumentComplexityAssessment(BaseModel):
@@ -94,61 +103,33 @@ def _send_event(
 # =============================================================================
 
 
-def load_context_files(
-    data_files_path: str = "core/data_files",
+async def load_context_files(
     ctx: Context[WorkflowState] | None = None,  # type: ignore
 ) -> str:
     """
     Load specific priority context files for workflow generation
 
     Args:
-        data_files_path: Path to directory containing context files
         ctx: Optional context for event streaming
 
     Returns:
-        Combined content of priority context files only
+        Content of the documentation about LlamaIndex Workflows and LlamaCloud Services
     """
-    context_files = []
-
-    # Priority files for workflow generation (in order of importance)
-    priority_files = [
-        "llama-index-workflows.md",
-        "asset_manager_fund_analysis.md",
-        "workflow_template.py",
-        "extract_data_with_citations.md",
-        "extract_config_options.md",
-    ]
 
     try:
-        # Check if directory exists
-        if not os.path.exists(data_files_path):
-            _send_event(ctx, f"Warning: Directory '{data_files_path}' not found")
-            return "No context files found"
+        # Check if AGENTS.md exists
+        if not os.path.exists("AGENTS.md"):
+            _send_event(ctx, "Warning: 'AGENTS.md' not found, generating it...")
+            await get_docs()
 
-        # Load only priority files
-        for filename in priority_files:
-            file_path = os.path.join(data_files_path, filename)
-            if os.path.exists(file_path):
-                try:
-                    with open(file_path, encoding="utf-8") as f:
-                        content = f.read()
-                        context_files.append(f"{filename}:\n{content}")
-                        # Debug only - don't show to user: _send_event(ctx, f"Loaded: {filename}")
-                except Exception as e:
-                    _send_event(ctx, f"Warning: Could not read {filename}: {e}")
-                    context_files.append(f"{filename}: Error reading file - {e}")
-            else:
-                _send_event(ctx, f"Warning: Priority file not found: {filename}")
-
-        if not context_files:
-            _send_event(ctx, f"Warning: No priority files found in '{data_files_path}'")
-            return "No context files found"
+        with open("AGENTS.md", "r") as f:
+            content = f.read()
 
     except Exception as e:
         _send_event(ctx, f"Error loading context files: {e}")
         return f"Error loading context files: {e}"
 
-    return "\n\n".join(context_files)
+    return content
 
 
 async def load_reference_files(
@@ -316,7 +297,6 @@ def extract_python_code(response_text: str) -> str:
 
 async def generate_workflow(
     user_task: str,
-    data_files_path: str = "core/data_files",
     reference_files_path: str | None = None,
     project_id: str | None = None,
     organization_id: str | None = None,
@@ -345,7 +325,7 @@ async def generate_workflow(
     llm = llm or DEFAULT_LLM
 
     # Load context and reference files
-    context_str = load_context_files(data_files_path, ctx)
+    context_str = await load_context_files(ctx)
     reference_files_content = await load_reference_files(
         reference_files_path, project_id, organization_id, ctx
     )

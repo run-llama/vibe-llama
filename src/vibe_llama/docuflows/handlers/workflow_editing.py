@@ -74,7 +74,7 @@ async def handle_edit_workflow(
 
     try:
         # Load context data
-        context_str = load_context_files("core/data_files", ctx)
+        context_str = await load_context_files(ctx)
 
         # Get generation context
         original_task = (await ctx.store.get_state()).generation_task

@@ -228,7 +228,6 @@ async def handle_generate_workflow(
         # Generate the workflow with complexity recommendations
         workflow_code = await generate_workflow(
             task,
-            data_files_path="core/data_files",
             reference_files_path=cleaned_path,
             project_id=config.project_id,
             organization_id=config.organization_id,

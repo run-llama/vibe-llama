@@ -76,15 +76,40 @@ vibe-llama starter -a 'GitHub Copilot' -s LlamaIndex -v # Select GitHub Copilot 
 
 ### docuflows
 
-`docuflows` is a CLI agent that enables you to build, edit or better understand workflows that are oriented to intelligent document processing (combining llama-index-workflows and LlamCloud).
+`docuflows` is a CLI agent that enables you to build and edit workflows that are oriented to intelligent document processing (combining llama-index-workflows and LlamaCloud).
 
-Running `vibe-llama docuflows` will start the terminal interface where you will be able to talk to the agent and create, edit or get help with your workflows.
+In order to use this command, you need to first set your OpenAI API key and your [LlamaCloud API key](https://cloud.llamaindex.ai) as environment variables. Optionally, if you wish to use Anthropic LLMs, you should also set the Anthropic API key in your environment.
+
+**On MacOS/Linux**
+
+```bash
+export OPENAI_API_KEY="your-openai-api-key"
+export LLAMA_CLOUD_API_KEY="your-llama-cloud-api-key"
+# optionally, for Anthropic usage
+export ANTHROPIC_API_KEY="your-anthropic-api-key"
+```
+
+**On Windows**
+
+```powershell
+Set-Location Env:
+$Env:OPENAI_API_KEY = "your-openai-api-key"
+$Env:LLAMA_CLOUD_API_KEY = "your-llama-cloud-api-key"
+# optionally, for Anthropic usage
+$Env:OPENAI_API_KEY = "your-anthropic-api-key"
+```
+
+Once you have the needed API keys in the environment, running `vibe-llama docuflows` will start a terminal interface where you will be able to interactively talk to the agent and create or edit document-centered workflows with the help of it.
 
 **Example usage**
 
 ```bash
-vibe-llama docuflows # launch a TUI
+vibe-llama docuflows
 ```
+
+> [!NOTE]
+>
+> _`vibe-llama docuflows` uses **AGENTS.md** as an instructions file. If you wish, you can directly create AGENTS.md with the `starter` command, by selecting `vibe-llama docuflows` as your agent. Alternatively, if an AGENTS.md is not present in your environment, `vibe-llama docuflows` will create one on the fly._
 
 ## SDK
 

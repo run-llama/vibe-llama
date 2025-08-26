@@ -64,9 +64,15 @@ def test__send_event(ctx: Context[WorkflowState]) -> None:
     assert success
 
 
-def test_load_context_files(dir_path: str, ctx: Context[WorkflowState]) -> None:
-    retval = load_context_files(dir_path, ctx)
-    assert retval == "llama-index-workflows.md:\n# This is a file\n"
+@pytest.mark.asyncio
+async def test_load_context_files(ctx: Context[WorkflowState]) -> None:
+    retval = await load_context_files(ctx)
+    with open("documentation/llama-index-workflows.md") as f:
+        wfs = f.read()
+    with open("documentation/llamacloud.md") as s:
+        lcs = s.read()
+    assert wfs in retval
+    assert lcs in retval
 
 
 @pytest.mark.asyncio
