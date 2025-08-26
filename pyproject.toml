@@ -12,12 +12,15 @@ dev = [
 
 [project]
 name = "vibe-llama"
-version = "0.2.0"
-description = "Add your description here"
+version = "0.3.0"
+description = "vibe-llama is a set of tools that are designed to help developers build working and reliable applications with LlamaIndex, LlamaCloud Services and llama-index-workflows."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
   "httpx>=0.28.1",
+  "llama-cloud-services>=0.6.54",
+  "llama-index>=0.13.2",
+  "llama-index-llms-anthropic>=0.8.4",
   "prompt-toolkit>=3.0.51",
   "rich>=14.1.0",
   "rich-gradient>=0.3.3"
@@ -33,7 +36,15 @@ only-include = ["src/vibe_llama"]
 "src" = ""
 
 [tool.mypy]
-disable_error_code = ["import-not-found", "import-untyped"]
+exclude = [
+  "tests/",
+  "src/vibe_llama/docuflows/"
+]
+namespace_packages = true
+explicit_package_bases = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+python_version = "3.10"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

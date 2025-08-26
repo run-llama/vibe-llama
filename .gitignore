@@ -15,3 +15,11 @@ logs/
 
 # caches
 *cache/
+
+# ai-generated files
+.ai_agent_config.json
+generated_workflows/
+.vibe-llama/
+
+# data folder
+data/invoices/

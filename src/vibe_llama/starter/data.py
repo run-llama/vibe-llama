@@ -15,6 +15,7 @@ agent_rules = {
     "Kilo Code": ".kilocode/rules/kilocode_instructions.md",
     "OpenCode": "AGENTS.md",
     "Goose": ".goosehints",
+    "vibe-llama docuflows": ".vibe-llama/rules/AGENTS.md",
 }
 
 services = {
