@@ -10,7 +10,6 @@ Once you've made your choice, `vibe-llama` will generate a rule file for your co
 
 **Workflow Generation:** An interactive CLI agent that helps you build document-processing workflows from scratch. Describe what you want in natural language, provide reference documents, and get complete workflow code with detailed explanations.
 
-
 ## Installation
 
 **User settings**
