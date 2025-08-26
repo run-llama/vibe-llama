@@ -2,12 +2,14 @@
 
 **vibe-llama** is a set of tools that are designed to help developers build working and reliable applications with [LlamaIndex](https://github.com/run-llama/llama_index), [LlamaCloud Services](https://github.com/run-llama/llama_cloud_services) and [llama-index-workflows](https://github.com/run-llama/workflows-py).
 
-This command-line tool aims to add the relevant context as rules to any coding agent of your choice (think Cursor, Claude Code, GitHub Copilot etc.):
+This command-line tool provides two main capabilities:
 
-1. You select a coding agent.
-2. You select the LlamaIndex service (such as LlamaCloud, the LlamaIndex framework or the Workflows package)
+**Context Injection:** Add relevant LlamaIndex context as rules to any coding agent of your choice (think Cursor, Claude Code, GitHub Copilot etc.). You select a coding agent and the LlamaIndex services you're working with, and vibe-llama generates rule files that give your AI assistant up-to-date knowledge about APIs, best practices, and common patterns.
 
-Once you've made your choice, **vibe-llama** will generate a rule file for your coding agent. For example, if you selected Cursor, a new rule will be added to `.cursor/rules`. Now, all of the context and instructions about your chosen LlamaIndex service will be available to your coding agent of choice.
+Once you've made your choice, `vibe-llama` will generate a rule file for your coding agent. For example, if you selected Cursor, a new rule will be added to `.cursor/rules`. Now, all of the context and instructions about your chosen LlamaIndex service will be available to your coding agent of choice.
+
+**Workflow Generation:** An interactive CLI agent that helps you build document-processing workflows from scratch. Describe what you want in natural language, provide reference documents, and get complete workflow code with detailed explanations.
+
 
 ## Installation
 
