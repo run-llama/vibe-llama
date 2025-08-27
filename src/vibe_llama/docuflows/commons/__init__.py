@@ -5,8 +5,10 @@ Utility classes and functions for AI Agent CLI.
 import textwrap
 import uuid
 import os
+import sys
 import asyncio
-from typing import Any
+from pathlib import Path
+from typing import Any, Optional
 
 from rich.console import Console
 from rich.markdown import Markdown
@@ -32,6 +34,20 @@ def validate_uuid(uuid_string: str) -> bool:
         return True
     except ValueError:
         return False
+
+
+class PythonPackage(BaseModel):
+    package_name: str = Field(description="Name of the package")
+    package_version: Optional[str] = Field(
+        description="Version of the package (not required, but nice to have)",
+        default=None,
+    )
+
+
+class Dependencies(BaseModel):
+    dependencies: list[PythonPackage] = Field(
+        description="List of python packages needed as dependencies for a given code"
+    )
 
 
 class StreamEvent:
@@ -655,3 +671,58 @@ def boxed_input(prompt_text: str, title: str = "💬 Input Required") -> str:
     except RuntimeError:
         # No event loop running, safe to create one
         return asyncio.run(boxed_input_async(prompt_text, title))
+
+
+async def local_venv():
+    venv_path = Path(".venv")
+    if venv_path.exists():
+        return
+    cmd = [sys.executable, "-m", "venv", ".venv"]
+    program = await asyncio.create_subprocess_shell(
+        " ".join(cmd), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+    )
+    stdout, stderr = await program.communicate()
+    if program.returncode != 0:
+        raise ValueError(
+            "Impossible to create venv within the given environment\nCaptured Logs:\n\tSTDOUT:\n"
+            + str(stdout, encoding="utf-8")
+            + "\n\tSTDERR:\n"
+            + str(stderr, encoding="utf-8")
+        )
+    return
+
+
+async def install_deps():
+    if sys.platform == "win32":
+        venv_cmd = ".\\.venv\\Scripts\\activate"
+    else:
+        venv_cmd = ["source", ".venv/bin/activate"]
+
+    venv_cmd += [
+        "&&",
+        "python3",
+        "-m",
+        "ensurepip",
+        "--upgrade",
+        "&&",
+        "python3",
+        "-m",
+        "pip",
+        "install",
+        "-r",
+        ".vibe-llama/requirements.txt",
+    ]
+    program = await asyncio.create_subprocess_shell(
+        " ".join(venv_cmd),
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await program.communicate()
+    if program.returncode != 0:
+        raise ValueError(
+            "Impossible to install needed dependencies in the current virtual environment\nCaptured Logs:\n\tSTDOUT:\n"
+            + str(stdout, encoding="utf-8")
+            + "\n\tSTDERR:\n"
+            + str(stderr, encoding="utf-8")
+        )
+    return

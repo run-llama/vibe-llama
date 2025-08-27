@@ -263,3 +263,19 @@ CRITICAL SCHEMA REQUIREMENTS FOR LLAMAEXTRACT COMPATIBILITY:
 
 Do not include any markdown formatting, explanations, or commentary - just pure Python code.
 """
+
+DEPENDENCY_GENERATION_PROMPT = """
+Given these instructions:
+
+```md
+{instructions}
+```
+
+And based on this workflow code:
+
+```python
+{workflow_code}
+```
+
+Produce a list of requirements following the specified schema.
+"""
