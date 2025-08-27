@@ -10,8 +10,8 @@ import sys
 from pathlib import Path
 from typing import cast
 
-from llama_index.core.llms import LLM, MessageRole
-from llama_index.core.prompts import ChatMessage
+from llama_index.core.llms import LLM, MessageRole, ChatMessage
+from llama_index.core.prompts import ChatPromptTemplate
 from workflows import Context
 from workflows.events import InputRequiredEvent
 
@@ -20,9 +20,18 @@ from vibe_llama.docuflows.commons import (
     StreamEvent,
     analyze_workflow_with_llm,
     get_test_file_suggestions,
+    Dependencies,
+    local_venv,
+    install_deps,
 )
-
+from vibe_llama.sdk import VibeLlamaStarter
 from vibe_llama.docuflows.commons.typed_state import WorkflowState
+from vibe_llama.docuflows.prompts import DEPENDENCY_GENERATION_PROMPT
+
+DOCS_GETTER = VibeLlamaStarter(
+    agents=["vibe-llama docuflows"],
+    services=["LlamaCloud Services", "llama-index-workflows"],
+)
 
 
 async def handle_test_workflow(
@@ -171,6 +180,112 @@ async def handle_test_file_validation(
     )
 
 
+async def handle_deps_generation(
+    ctx: Context[WorkflowState], workflow_path: str, llm: LLM
+) -> bool:
+    with open(workflow_path, "r") as wf_path:
+        wf_content = wf_path.read()
+
+    if not Path(".vibe-llama/rules/AGENTS.md").is_file():
+        await DOCS_GETTER.write_instructions()
+
+    with open(".vibe-llama/rules/AGENTS.md", "r") as ins_fl:
+        ins_content = ins_fl.read()
+
+    prompt_tmpl = ChatPromptTemplate(
+        [ChatMessage(content=DEPENDENCY_GENERATION_PROMPT, role="user")]
+    )
+    messages = prompt_tmpl.format_messages(
+        instructions=ins_content, workflow_code=wf_content
+    )
+    sllm = llm.as_structured_llm(Dependencies)
+    response = await sllm.achat(messages)
+    if response.message.content:
+        deps = Dependencies.model_validate_json(response.message.content)
+        with open(".vibe-llama/requirements.txt", "w") as w:
+            to_write = []
+            for dep in deps.dependencies:
+                if dep.package_version:
+                    to_write.append(f"{dep.package_name}=={dep.package_version}")
+                else:
+                    to_write.append(dep.package_name)
+            w.write("\n".join(to_write))
+        ctx.send_event(
+            StreamEvent(
+                delta="",
+                rich_content=CLIFormatter.info(
+                    ".vibe-llama/requirements.txt has been written successfully"
+                ),
+            )  # type: ignore
+        )
+        return True
+    else:
+        ctx.send_event(
+            StreamEvent(
+                delta="",
+                rich_content=CLIFormatter.error(
+                    "Unable to find needed dependencies. Testing will proceed, but errros migh occur"
+                ),
+                newline_after=True,
+            )  # type: ignore
+        )
+        return False
+
+
+async def handle_venv_generation_and_deps_install(
+    ctx: Context[WorkflowState], workflow_path: str, llm: LLM
+) -> tuple[bool, bool]:
+    deps_available = await handle_deps_generation(ctx, workflow_path, llm)
+    try:
+        await local_venv()
+        ctx.send_event(
+            StreamEvent(
+                delta="",
+                rich_content=CLIFormatter.info(
+                    "Proceeding with .venv as virtual environment"
+                ),
+                newline_after=True,
+            )  # type: ignore
+        )
+    except ValueError as ve:
+        ctx.send_event(
+            StreamEvent(
+                delta="",
+                rich_content=CLIFormatter.error(
+                    "Error while finding/creating virtual environment: " + str(ve)
+                ),
+                newline_after=True,
+            )  # type: ignore
+        )
+        return False, False
+    if deps_available:
+        try:
+            await install_deps()
+            return True, True
+        except ValueError as de:
+            ctx.send_event(
+                StreamEvent(
+                    delta="",
+                    rich_content=CLIFormatter.error(
+                        "Error while installing dependencies: " + str(de)
+                    ),
+                    newline_after=True,
+                )  # type: ignore
+            )
+
+            return True, False
+    ctx.send_event(
+        StreamEvent(
+            delta="",
+            rich_content=CLIFormatter.info(
+                "Successfully installed all the needed dependencies within the current virtual environment, proceeding..."
+            ),
+            newline_after=True,
+        )  # type: ignore
+    )
+    return True, True
+
+
 async def execute_workflow(
     ctx: Context[WorkflowState],
     workflow_path: str,
@@ -196,38 +311,44 @@ async def execute_workflow(
     else:
         output_path = workflow_folder / "test_results"
 
+    success_venv, success_deps = await handle_venv_generation_and_deps_install(
+        ctx, workflow_path, llm
+    )
+
+    if not success_venv:
+        ctx.write_event_to_stream(
+            StreamEvent(  # type: ignore
+                delta="",
+                rich_content=CLIFormatter.error(
+                    "Error executing workflow: unable to find/create local virtual environment or to install needed dependencies"
+                ),
+                newline_after=True,
+            )
+        )
+        async with ctx.store.edit_state() as state:
+            state.handler_status_message = "Workflow testing failed because we could not find/create local virtual environment or install needed dependencies. Please check your environment and make sure that python is installed and working."  # type: ignore
+        return InputRequiredEvent(
+            prefix="\nWorkflow testing failed :( What would you like to do next? "  # type: ignore
+            "(Options: edit workflow, test another file, ask questions, generate new workflow): "
+        )
+
+    if not success_deps:
+        ctx.write_event_to_stream(
+            StreamEvent(  # type: ignore
+                delta="⚠️ WARNING: Could not install needed dependencies. Testing will continue, but there might be errors due to missing dependencies.",
+                newline_after=True,
+            )
+        )
+
     # Analysis is now required parameter
 
     try:
-        # Determine Python executable
-        venv_path = Path(".venv")
-        poetry_lock_path = Path("poetry.lock")
-
-        python_cmd = []
-        if poetry_lock_path.exists():
-            python_cmd = ["poetry", "run", "python"]
-            ctx.write_event_to_stream(
-                StreamEvent(delta="📦 Using Poetry environment\n")  # type: ignore
-            )
-        elif venv_path.exists():
-            if sys.platform == "win32":
-                python_path = venv_path / "Scripts" / "python.exe"
-            else:
-                python_path = venv_path / "bin" / "python"
-
-            if python_path.exists():
-                python_cmd = [str(python_path)]
-                ctx.write_event_to_stream(
-                    StreamEvent(delta="🐍 Using .venv environment\n")  # type: ignore
-                )
-            else:
-                python_cmd = [sys.executable]
-                ctx.write_event_to_stream(
-                    StreamEvent(delta="⚠️ Using system Python (venv not found)\n")  # type: ignore
-                )
+        if sys.platform == "win32":
+            venv_act = [".\\.venv\\Scripts\\activate"]
         else:
-            python_cmd = [sys.executable]
-            ctx.write_event_to_stream(StreamEvent(delta="⚠️ Using system Python\n"))  # type: ignore
+            venv_act = ["source", ".venv/bin/activate"]
+
+        python_cmd = venv_act + ["&&", "python3"]
 
         # Build command based on analysis
         cmd = python_cmd + [workflow_path]
@@ -253,8 +374,8 @@ async def execute_workflow(
         ctx.write_event_to_stream(StreamEvent(delta="=" * 50 + "\n"))  # type: ignore
 
         # Run the process and stream output in real-time
-        process = await asyncio.create_subprocess_exec(
-            *cmd,
+        process = await asyncio.create_subprocess_shell(
+            " ".join(cmd),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
             cwd=os.getcwd(),

@@ -1,5 +1,6 @@
 import pytest
 import uuid
+import os
 
 from src.vibe_llama.docuflows.commons import (
     validate_reference_path,
@@ -7,12 +8,17 @@ from src.vibe_llama.docuflows.commons import (
     validate_workflow_path,
     clean_file_path,
     CLIFormatter,
+    local_venv,
+    install_deps,
 )
 from rich.text import Text
 from rich.padding import Padding
 from rich.syntax import Syntax
 from rich.console import Group
 from rich.markdown import Markdown
+
+SKIP_CONDITION = not os.getenv("IS_NOT_CI_ENV", None)
+VENV_FAILED = False
 
 
 @pytest.fixture()
@@ -75,3 +81,32 @@ def test_cli_formatter(test_text: str, reference_path: str) -> None:
     assert isinstance(formatter.success(test_text), Text)
     assert isinstance(formatter.tool_action(test_text), Text)
     assert isinstance(formatter._get_terminal_width(), int)
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(condition=SKIP_CONDITION, reason="Avoid venv in CI environment")
+async def test_local_venv() -> None:
+    global VENV_FAILED
+    try:
+        await local_venv()
+        success = True
+    except ValueError:
+        success = False
+        VENV_FAILED = True
+    assert success
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(
+    condition=SKIP_CONDITION or VENV_FAILED,
+    reason="Avoid deps installation in CI environment or no available venv",
+)
+async def test_install_deps() -> None:
+    with open(".vibe-llama/requirements.txt", "w") as w:
+        w.write("termcolor")
+    try:
+        await install_deps()
+        success = True
+    except ValueError:
+        success = False
+    assert success
