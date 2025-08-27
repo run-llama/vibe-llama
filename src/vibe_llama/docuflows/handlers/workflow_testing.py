@@ -224,7 +224,7 @@ async def handle_deps_generation(
             StreamEvent(
                 delta="",
                 rich_content=CLIFormatter.error(
-                    "Unable to find needed dependencies. Testing will proceed, but errros migh occur"
+                    "Unable to find needed dependencies. Testing will proceed, but errros might occur"
                 ),
                 newline_after=True,
             )  # type: ignore

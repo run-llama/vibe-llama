@@ -681,9 +681,14 @@ async def local_venv():
     program = await asyncio.create_subprocess_shell(
         " ".join(cmd), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
-    await program.communicate()
+    stdout, stderr = await program.communicate()
     if program.returncode != 0:
-        raise ValueError("Impossible to create venv within the given environment")
+        raise ValueError(
+            "Impossible to create venv within the given environment\nCaptured Logs:\n\tSTDOUT:\n"
+            + str(stdout, encoding="utf-8")
+            + "\n\tSTDERR:\n"
+            + str(stderr, encoding="utf-8")
+        )
     return
 
 
@@ -712,9 +717,12 @@ async def install_deps():
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
-    await program.communicate()
+    stdout, stderr = await program.communicate()
     if program.returncode != 0:
         raise ValueError(
-            "Impossible to install needed dependencies in the current virtual environment"
+            "Impossible to install needed dependencies in the current virtual environment\nCaptured Logs:\n\tSTDOUT:\n"
+            + str(stdout, encoding="utf-8")
+            + "\n\tSTDERR:\n"
+            + str(stderr, encoding="utf-8")
         )
     return
