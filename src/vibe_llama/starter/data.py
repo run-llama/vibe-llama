@@ -18,9 +18,8 @@ agent_rules = {
     "vibe-llama docuflows": ".vibe-llama/rules/AGENTS.md",
 }
 
-# URLS HAVE BEEN CHANGED ONLY FOR TESTING PURPOSES
 services = {
     "LlamaIndex": "https://docs.llamaindex.ai/en/latest/llms.txt",
-    "LlamaCloud Services": "https://raw.githubusercontent.com/run-llama/vibe-llama/clelia/more-detailed-docs/documentation/llamacloud.md",
-    "llama-index-workflows": "https://raw.githubusercontent.com/run-llama/vibe-llama/clelia/more-detailed-docs/documentation/llama-index-workflows.md",
+    "LlamaCloud Services": "https://raw.githubusercontent.com/run-llama/vibe-llama/main/documentation/llamacloud.md",
+    "llama-index-workflows": "https://raw.githubusercontent.com/run-llama/vibe-llama/main/documentation/llama-index-workflows.md",
 }
