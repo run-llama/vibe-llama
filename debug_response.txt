@@ -1,0 +1,273 @@
+=== RAW LLM RESPONSE ===
+import argparse
+import asyncio
+from typing import List, Optional
+from pydantic import BaseModel, Field
+
+# =============================================================================
+# SETUP
+# =============================================================================
+
+# Project Configuration
+project_id = "cc9a8767-9f59-42f9-be81-4ece7e3b3031"
+organization_id = "c84b93a1-e77a-4141-9cd4-13b687d25f40"
+
+# =============================================================================
+# INITIALIZE LLMS AND EMBEDDINGS
+# =============================================================================
+
+from llama_index.core import Settings
+from llama_index.embeddings.openai import OpenAIEmbedding
+from llama_index.llms.openai import OpenAI
+
+embed_model = OpenAIEmbedding(model_name="text-embedding-3-small")
+llm = OpenAI(model="gpt-4.1")
+Settings.llm = llm
+Settings.embed_model = embed_model
+
+# =============================================================================
+# INITIALIZE LLAMAPARSE
+# =============================================================================
+
+from llama_cloud_services import LlamaParse
+
+llama_parser = LlamaParse(
+    parse_mode="parse_page_with_agent",  # agentic mode (recommended for invoices)
+    model="openai-gpt-4-1-mini",
+    high_res_ocr=True,
+    adaptive_long_table=True,
+    outlined_table_extraction=True,
+    output_tables_as_HTML=True,
+    result_type="markdown",
+    project_id=project_id,
+    organization_id=organization_id,
+)
+
+# =============================================================================
+# INITIALIZE LLAMAEXTRACT
+# =============================================================================
+
+from llama_cloud import ExtractConfig, ExtractMode
+from llama_cloud.core.api_error import ApiError
+from llama_cloud_services import LlamaExtract
+
+llama_extract = LlamaExtract(
+    show_progress=True,
+    check_interval=5,
+    project_id=project_id,
+    organization_id=organization_id,
+)
+
+# =============================================================================
+# DEFINE DATA SCHEMA
+# =============================================================================
+
+class InvoiceLineItem(BaseModel):
+    service_description: str = Field(..., description="Description of the service or transaction")
+    amount: Optional[str] = Field(None, description="Amount per unit, as shown on the invoice (e.g., '130,00 €')")
+    quantity: Optional[int] = Field(None, description="Quantity of the service or transaction")
+    total_amount: Optional[str] = Field(None, description="Total amount for this line item (e.g., '130,00 €')")
+
+class InvoiceSummaryItem(BaseModel):
+    label: str = Field(..., description="Summary label (e.g., 'Total', 'VAT 19 %', 'Gross Amount incl. VAT')")
+    value: str = Field(..., description="Value as shown on the invoice (e.g., '381,12 €')")
+
+class InvoiceRawContent(BaseModel):
+    raw_text: str = Field(..., description="Raw markdown content of the invoice page")
+
+class InvoiceData(BaseModel):
+    invoice_number: Optional[str] = Field(None, description="Invoice number")
+    customer_number: Optional[str] = Field(None, description="Customer number")
+    invoice_period: Optional[str] = Field(None, description="Invoice period (e.g., '01.02.2024 - 29.02.2024')")
+    invoice_date: Optional[str] = Field(None, description="Invoice date (e.g., '1. März 2024')")
+    company_name: Optional[str] = Field(None, description="Name of the company issuing the invoice")
+    company_address: Optional[str] = Field(None, description="Address of the company issuing the invoice")
+    customer_name: Optional[str] = Field(None, description="Name of the customer")
+    customer_address: Optional[str] = Field(None, description="Address of the customer")
+    vat_number: Optional[str] = Field(None, description="VAT number")
+    line_items: List[InvoiceLineItem] = Field(default_factory=list, description="List of line items in the invoice")
+    summary_items: List[InvoiceSummaryItem] = Field(default_factory=list, description="Summary items such as total, VAT, gross amount")
+    payment_terms: Optional[str] = Field(None, description="Terms of payment as stated on the invoice")
+    iban: Optional[str] = Field(None, description="IBAN for payment")
+    bic: Optional[str] = Field(None, description="BIC for payment")
+    raw_content: List[InvoiceRawContent] = Field(default_factory=list, description="Raw markdown content of each invoice page")
+
+# =============================================================================
+# CREATE EXTRACTION AGENT
+# =============================================================================
+
+extract_config = ExtractConfig(
+    extraction_mode=ExtractMode.MULTIMODAL,  # Recommended based on complexity
+    # extraction_target=ExtractTarget.PER_DOC,   # PER_DOC, PER_PAGE
+    # system_prompt="<Insert relevant context>", # Custom instructions
+    # chunk_mode=ChunkMode.PAGE,     # PAGE, SECTION
+    # high_resolution_mode=True,     # Better OCR for small text
+    # invalidate_cache=False,        # Bypass cache for fresh results
+    # cite_sources=True,             # Enable source citations
+    # use_reasoning=False,           # ALWAYS False by default (performance issues)
+    # confidence_scores=True         # Enable confidence scores (MULTIMODAL/PREMIUM only)
+)
+
+try:
+    existing_agent = llama_extract.get_agent(name="InvoiceRawContentExtractor")
+    if existing_agent:
+        llama_extract.delete_agent(existing_agent.id)
+except ApiError as e:
+    if e.status_code == 404:
+        pass
+    else:
+        raise
+
+extract_agent = llama_extract.create_agent(
+    "InvoiceRawContentExtractor", data_schema=InvoiceData, config=extract_config
+)
+
+# =============================================================================
+# WORKFLOW EVENTS
+# =============================================================================
+
+from llama_index.core.schema import TextNode
+from workflows import Context, Workflow, step
+from workflows.events import Event, StartEvent, StopEvent
+
+class ParseDocEvent(Event):
+    nodes: List[TextNode]
+
+class ExtractDataEvent(Event):
+    data_list: List[InvoiceData]
+
+# =============================================================================
+# WORKFLOW IMPLEMENTATION
+# =============================================================================
+
+from llama_cloud_services.extract import SourceText
+
+class InvoiceParseWorkflow(Workflow):
+    def __init__(
+        self,
+        llama_parser: LlamaParse,
+        extract_agent: LlamaExtract,
+        output_file: str = "results.csv",
+        verbose: bool = False,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.llama_parser = llama_parser
+        self.extract_agent = extract_agent
+        self.output_file = output_file
+        self.verbose = verbose
+
+    @step
+    async def parse_document(
+        self, ctx: Context, ev: StartEvent
+    ) -> ParseDocEvent:
+        result = await self.llama_parser.aparse(ev.file_path)
+        markdown_nodes = await result.aget_markdown_nodes(split_by_page=True)
+        return ParseDocEvent(nodes=markdown_nodes)
+
+    @step
+    async def extract_data(
+        self, ctx: Context, ev: ParseDocEvent
+    ) -> ExtractDataEvent:
+        # Combine all markdown content for extraction, but also keep per-page raw content
+        raw_contents = []
+        for node in ev.nodes:
+            raw_text = node.get_content(metadata_mode="all")
+            raw_contents.append(InvoiceRawContent(raw_text=raw_text))
+        combined_text = "\n\n".join([rc.raw_text for rc in raw_contents])
+        # Extract structured fields and attach raw content
+        result_dict = (await self.extract_agent.aextract(SourceText(text_content=combined_text))).data
+        # Attach raw_content field
+        if "raw_content" in InvoiceData.model_fields:
+            result_dict["raw_content"] = raw_contents
+        extracted_data = InvoiceData.model_validate(result_dict)
+        return ExtractDataEvent(data_list=[extracted_data])
+
+    @step
+    async def analyze_results(
+        self, ctx: Context, ev: ExtractDataEvent
+    ) -> StopEvent:
+        import pandas as pd
+
+        # For each InvoiceData, flatten to dict for DataFrame
+        records = []
+        for data in ev.data_list:
+            base = data.model_dump(exclude={"line_items", "summary_items", "raw_content"})
+            # Flatten line_items and summary_items as JSON strings for CSV
+            base["line_items"] = [li.model_dump() for li in data.line_items]
+            base["summary_items"] = [si.model_dump() for si in data.summary_items]
+            base["raw_content"] = [rc.raw_text for rc in data.raw_content]
+            records.append(base)
+        df = pd.DataFrame(records)
+        df.to_csv(self.output_file, index=False)
+        if self.verbose:
+            print(f"Extracted {len(ev.data_list)} record(s)")
+            print(f"Results saved to: {self.output_file}")
+            print("\nSummary:")
+            print(df.head())
+        return StopEvent(result={"dataframe": df, "raw_data": ev.data_list, "output_file": self.output_file})
+
+# =============================================================================
+# MAIN FUNCTION
+# =============================================================================
+
+async def main():
+    parser = argparse.ArgumentParser(
+        description="Invoice PDF Parsing Workflow"
+    )
+    parser.add_argument(
+        "input_files", nargs="+", help="Input PDF files to process"
+    )
+    parser.add_argument(
+        "--output", "-o", default="results.csv", help="Output file path"
+    )
+    parser.add_argument(
+        "--project-id", "-p", default=project_id, help="LlamaCloud project ID"
+    )
+    parser.add_argument(
+        "--organization-id",
+        "-org",
+        default=organization_id,
+        help="LlamaCloud organization ID",
+    )
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Enable verbose output"
+    )
+
+    args = parser.parse_args()
+
+    print(f"Processing {len(args.input_files)} file(s)...")
+
+    all_results = []
+    for file_path in args.input_files:
+        print(f"Processing: {file_path}")
+        try:
+            workflow = InvoiceParseWorkflow(
+                llama_parser=llama_parser,
+                extract_agent=extract_agent,
+                output_file=args.output,
+                verbose=args.verbose,
+                timeout=None,
+            )
+            result = await workflow.run(file_path=file_path)
+            all_results.append(result)
+            print(f"Successfully processed: {file_path}")
+        except Exception as e:
+            print(f"Error processing {file_path}: {e}")
+            continue
+
+    if all_results:
+        if args.verbose:
+            print(f"\nAll files processed successfully!")
+            print(f"Results saved to: {args.output}")
+        return all_results
+    else:
+        print("No files were successfully processed")
+        return None
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
+
+=== RESPONSE LENGTH ===
+Length: 10995 characters
