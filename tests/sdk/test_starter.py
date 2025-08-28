@@ -28,5 +28,10 @@ async def test_write_instructions(tmp_path: Path) -> None:
     await starter.write_instructions()
     assert (tmp_path / agent_rules["GitHub Copilot"]).is_file()
     assert (tmp_path / agent_rules["Cursor"]).is_file()
-    assert (tmp_path / agent_rules["GitHub Copilot"]).stat().st_size > 0
-    assert (tmp_path / agent_rules["Cursor"]).stat().st_size > 0
+    prev_sz_gh = (tmp_path / agent_rules["GitHub Copilot"]).stat().st_size
+    prev_sz_cur = (tmp_path / agent_rules["Cursor"]).stat().st_size
+    assert prev_sz_gh > 0
+    assert prev_sz_cur > 0
+    await starter.write_instructions(overwrite=True)
+    assert prev_sz_cur == (tmp_path / agent_rules["Cursor"]).stat().st_size
+    assert prev_sz_gh == (tmp_path / agent_rules["GitHub Copilot"]).stat().st_size

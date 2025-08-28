@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 from src.vibe_llama.starter import starter, services
-from src.vibe_llama.starter.terminal import app1, app2
+from src.vibe_llama.starter.terminal import app1, app2, app3
 from prompt_toolkit.application import Application
 from src.vibe_llama.starter.utils import write_file, get_instructions
 
@@ -37,15 +37,20 @@ async def test_get_instructions() -> None:
 
 def test_write_file(tmp_path: Path) -> None:
     fl = tmp_path / "hello.txt"
-    write_file(str(fl), "hello world\n", "https://www.llamaindex.ai")
+    write_file(str(fl), "hello world\n", False, "https://www.llamaindex.ai")
     assert fl.is_file()
     assert fl.stat().st_size > 0
-    write_file(str(fl), "hello world", "https://www.llamaindex.ai")
+    write_file(str(fl), "hello world", False, "https://www.llamaindex.ai")
     with open(fl) as f:
         content = f.read()
     assert content == "hello world\n\nhello world"
+    write_file(str(fl), "hello world\n", True, "https://www.llamaindex.ai")
+    with open(fl) as f:
+        content = f.read()
+    assert content == "hello world\n"
 
 
 def test_terminal_apps() -> None:
     assert isinstance(app1, Application)
     assert isinstance(app2, Application)
+    assert isinstance(app3, Application)
