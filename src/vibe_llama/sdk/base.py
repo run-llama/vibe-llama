@@ -38,7 +38,11 @@ class VibeLlamaStarter:
         self.service_urls = [service_to_url[service] for service in services]
 
     async def write_instructions(
-        self, max_retries: int = 10, retry_interval: float = 0.5, verbose: bool = False
+        self,
+        max_retries: int = 10,
+        retry_interval: float = 0.5,
+        verbose: bool = False,
+        overwrite: bool = False,
     ) -> None:
         """
         Fetch and write the instructions for the specified agents and services.
@@ -47,6 +51,7 @@ class VibeLlamaStarter:
             max_retries (int): Maximum number of times the method should retry fetching instructions.
             retry_interval (float): Interval, in seconds, between one retry and the following.
             verbose (bool): Print debugging information while the function is running.
+            overwrite (bool): Overwrite current files without preserving their content.
         """
         inst: List[str] = []
         for service_url in self.service_urls:
@@ -70,7 +75,7 @@ class VibeLlamaStarter:
         for agent_file in self.agent_files:
             print_verbose(f"Writing {agent_file}", verbose)
             try:
-                write_file(agent_file, content, ", ".join(self.service_urls))
+                write_file(agent_file, content, overwrite, ", ".join(self.service_urls))
             except Exception as e:
                 print_verbose(
                     f"Warning:\nunable to write {agent_file} because of the following error: {str(e)}",
@@ -85,7 +90,7 @@ class VibeLlamaStarter:
         if len(failed_files) == len(self.agent_files):
             print_verbose("Error:\nunable to write agent files", verbose)
             raise FailedToWriteFilesError(
-                "Unable to write agent instructions files, please check that you have writing permission in the current environemnt."
+                "Unable to write agent instructions files, please check that you have writing permission in the current environment."
             )
         print_verbose(
             "All the files have been successfully written, happy vibe-hacking!", verbose

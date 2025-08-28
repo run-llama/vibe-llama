@@ -68,11 +68,14 @@ uv pip install -e .
 
 Use the `-v`/`--verbose` flag (independently from TUI or CLI) if you want verbose logging of what processes are being executed while the application runs.
 
+Use the `-w`/`--overwrite` flag (works only from CLI) if you want to overwrite local files with the incoming ones downloaded by `vibe-llama starter`. On the TUI, you will be prompted to choose whether you want to overwrite existing files or not.
+
 **Example usage**
 
 ```bash
 vibe-llama starter # launch a TUI
 vibe-llama starter -a 'GitHub Copilot' -s LlamaIndex -v # Select GitHub Copilot and LlamaIndex and enable verbose logging
+vibe-llama starter -a 'Claude Code' -s llama-index-workflows -w # Select Claude Code and llama-index-workflows and allow to overwrite the existing CLAUDE.md
 ```
 
 ### docuflows

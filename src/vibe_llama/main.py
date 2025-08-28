@@ -23,7 +23,7 @@ def main() -> None:
 
     starter_parser = subparsers.add_parser(
         "starter",
-        help="starter provides your coding agents with up-to-date documentation about LlamIndex, LlamaCloud Services and llama-index-workflows, so that they can build reliable and working applications! You can launch a terminal user interface by running `vibe-llama starter` or you can directly pass your agent (-a, --agent flag) and chosen service (-s, --service flag).",
+        help="starter provides your coding agents with up-to-date documentation about LlamIndex, LlamaCloud Services and llama-index-workflows, so that they can build reliable and working applications! You can launch a terminal user interface by running `vibe-llama starter` or you can directly pass your agent (-a, --agent flag) and chosen service (-s, --service flag). If you already have local files and you wish them to be overwritten by the new file you are about to download with starter, use the -w, --overwrite flag.",
     )
 
     _ = subparsers.add_parser(
@@ -58,11 +58,20 @@ def main() -> None:
         default=False,
     )
 
+    starter_parser.add_argument(
+        "-w",
+        "--overwrite",
+        action="store_true",
+        help="Overwrite current files",
+        required=False,
+        default=False,
+    )
+
     args = parser.parse_args()
 
     if args.command == "starter":
         print_logo()
-        asyncio.run(starter(args.agent, args.service, args.verbose))
+        asyncio.run(starter(args.agent, args.service, args.overwrite, args.verbose))
     elif args.command == "docuflows":
         print_logo()
         try:
