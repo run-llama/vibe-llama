@@ -556,3 +556,429 @@ class FanInFanOut(Workflow):
 The `init_run` step emits several `ProcessEvent`s. The step signature is still annotated that it returns `ProcessEvent` even though it doesn't technically, in order to help validate the workflow.
 
 `finalize()` will be triggered each time a `ResultEvent` comes in, and will only complete once all events are present.
+
+## 4. Building Workflows with LlamaCloud Services
+
+The following code provides you a template for building workflows with LlamaCloud Services.
+
+This template provides the basic setup for a document processing workflow using
+LlamaParse, LlamaExtract, and LLMs. The actual workflow logic should be implemented
+based on your specific requirements.
+
+```python
+from pydantic import BaseModel, Field
+
+# =============================================================================
+# SETUP
+# =============================================================================
+
+# Environment Variables - assume these are already set
+# os.environ["LLAMA_CLOUD_API_KEY"] = "llx-..."  # Set in environment
+# os.environ["OPENAI_API_KEY"] = "sk-proj-..."   # Set in environment
+
+# Project Configuration - these will be passed as parameters
+project_id = "your-project-id"  # Replace with your project ID
+organization_id = "your-organization-id"  # Replace with your organization ID
+
+# =============================================================================
+# INITIALIZE LLMS AND EMBEDDINGS
+# =============================================================================
+
+from llama_index.core import Settings
+from llama_index.embeddings.openai import OpenAIEmbedding
+from llama_index.llms.openai import OpenAI
+
+# Set LLM, embedding model
+embed_model = OpenAIEmbedding(model_name="text-embedding-3-small")
+llm = OpenAI(model="gpt-4.1")
+Settings.llm = llm
+Settings.embed_model = embed_model
+
+# =============================================================================
+# INITIALIZE LLAMAPARSE
+# =============================================================================
+
+from llama_cloud_services import LlamaParse
+
+# # Cost-Effective Mode
+# llama_parser = LlamaParse(
+#   # See how to get your API key at https://docs.cloud.llamaindex.ai/api_key
+#   parse_mode="parse_page_with_llm",
+#   high_res_ocr=True,
+#   adaptive_long_table=True,
+#   outlined_table_extraction=True,
+#   output_tables_as_HTML=True,
+#   result_type="markdown",
+#   project_id=project_id,
+#   organization_id=organization_id,
+# )
+
+# Agentic Mode (Default)
+llama_parser = LlamaParse(
+    # See how to get your API key at https://docs.cloud.llamaindex.ai/api_key
+    parse_mode="parse_page_with_agent",
+    model="openai-gpt-4-1-mini",
+    high_res_ocr=True,
+    adaptive_long_table=True,
+    outlined_table_extraction=True,
+    output_tables_as_HTML=True,
+    result_type="markdown",
+    project_id=project_id,
+    organization_id=organization_id,
+)
+
+# # Agentic Plus Mode
+# llama_parser = LlamaParse(
+#   # See how to get your API key at https://docs.cloud.llamaindex.ai/api_key
+#   parse_mode="parse_page_with_agent",
+#   model="anthropic-sonnet-4.0",
+#   high_res_ocr=True,
+#   adaptive_long_table=True,
+#   outlined_table_extraction=True,
+#   output_tables_as_HTML=True,
+#   result_type="markdown",
+#   project_id=project_id,
+#   organization_id=organization_id,
+# )
+
+
+# =============================================================================
+# INITIALIZE LLAMAEXTRACT
+# =============================================================================
+
+from llama_cloud import ExtractConfig, ExtractMode
+from llama_cloud.core.api_error import ApiError
+from llama_cloud_services import LlamaExtract
+
+# Initialize LlamaExtract
+llama_extract = LlamaExtract(
+    show_progress=True,
+    check_interval=5,
+    project_id=project_id,
+    organization_id=organization_id,
+)
+
+# =============================================================================
+# DEFINE YOUR DATA SCHEMA
+# =============================================================================
+
+
+class YourDataSchema(BaseModel):
+    """Define your extraction schema here based on the task and reference files"""
+
+    field1: str = Field(..., description="Description of field1")
+    field2: float | None = Field(None, description="Description of field2")
+    # Add more fields as needed based on your specific task
+
+
+# Create extraction agent
+extract_config = ExtractConfig(
+    # Basic options
+    extraction_mode=ExtractMode.MULTIMODAL,  # FAST, BALANCED, MULTIMODAL, PREMIUM
+    # extraction_target=ExtractTarget.PER_DOC,   # PER_DOC, PER_PAGE
+    # system_prompt="<Insert relevant context for extraction>", # set system prompt - can leave blank
+    # Advanced options
+    # chunk_mode=ChunkMode.PAGE,     # PAGE, SECTION
+    # high_resolution_mode=True,     # Enable for better OCR
+    # invalidate_cache=False,        # Set to True to bypass cache
+    # Extensions (see Extensions page for details)
+    # cite_sources=True,             # Enable citations
+    # use_reasoning=True,            # Enable reasoning (not available in FAST mode)
+    # confidence_scores=True         # Enable confidence scores (MULTIMODAL/PREMIUM only)
+)
+
+# Handle existing agent - delete if it exists
+try:
+    existing_agent = llama_extract.get_agent(name="YourExtractorName")
+    if existing_agent:
+        print("Deleting existing agent: YourExtractorName")
+        # Deletion can take some time since all underlying files will be purged
+        llama_extract.delete_agent(existing_agent.id)
+except ApiError as e:
+    if e.status_code == 404:
+        pass  # Agent doesn't exist, which is fine
+    else:
+        raise  # Re-raise other errors
+
+extract_agent = llama_extract.create_agent(
+    "YourExtractorName", data_schema=YourDataSchema, config=extract_config
+)
+
+# =============================================================================
+# WORKFLOW EVENTS
+# =============================================================================
+
+from llama_index.core.schema import TextNode
+from workflows import Context, Workflow, step
+from workflows.events import Event, StartEvent, StopEvent
+
+# Import splitting functions (only needed if splitting is implemented)
+# from test_utils import afind_categories_and_splits
+
+
+class ParseDocEvent(Event):
+    nodes: list[TextNode]
+
+
+class SplitDocEvent(Event):
+    splits: dict[str, list[str]]  # split_name -> list of node content
+
+
+class ExtractDataEvent(Event):
+    data_list: list[
+        YourDataSchema
+    ]  # Always a list - single item for no splitting, multiple items for splitting
+
+
+# ADDITIONAL EVENTS YOU CAN DEFINE AS NEEDED, EXAMPLES BELOW (NOT EXCLUSIVE):
+# class PreprocessEvent(Event):
+#     """For preprocessing steps like cleaning, filtering, etc."""
+#     processed_nodes: List[str]
+#
+# class ValidateEvent(Event):
+#     """For validation steps"""
+#     validated_data: YourDataSchema
+#
+# class TransformEvent(Event):
+#     """For data transformation steps"""
+#     transformed_data: Dict
+#
+# class AggregateEvent(Event):
+#     """For aggregating results from multiple files"""
+#     aggregated_results: List[YourDataSchema]
+
+# =============================================================================
+# WORKFLOW IMPLEMENTATION
+# =============================================================================
+
+
+class YourWorkflow(Workflow):
+    def __init__(
+        self,
+        llama_parser: LlamaParse,
+        extract_agent: LlamaExtract,
+        output_file: str = "results.csv",
+        verbose: bool = False,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.llama_parser = llama_parser
+        self.extract_agent = extract_agent
+        self.output_file = output_file
+        self.verbose = verbose
+
+    @step
+    async def parse_document(
+        self, ctx: Context, ev: StartEvent
+    ) -> ParseDocEvent:
+        """
+        Parse the input document using LlamaParse
+        """
+        # TODO: Implement document parsing
+        # result = await self.llama_parser.aparse(ev.file_path)
+        # markdown_nodes = await result.aget_markdown_nodes(split_by_page=True)
+        # return ParseDocEvent(nodes=markdown_nodes)
+        pass
+
+    # OPTIONAL STEPS - UNCOMMENT AND IMPLEMENT AS NEEDED, EXAMPLES BELOW (NOT EXCLUSIVE)
+
+    # @step
+    # async def preprocess_document(self, ctx: Context, ev: ParseDocEvent) -> PreprocessEvent:
+    #     """
+    #     Preprocess the parsed document (cleaning, filtering, etc.)
+    #     Use this if you need to clean or filter the parsed content
+    #     """
+    #     # TODO: Implement preprocessing if needed
+    #     # Example: Remove headers, clean formatting, filter irrelevant sections
+    #     # processed_nodes = self.clean_nodes(ev.nodes)
+    #     # return PreprocessEvent(processed_nodes=processed_nodes)
+    #     pass
+
+    # @step
+    # async def split_document(self, ctx: Context, ev: ParseDocEvent) -> SplitDocEvent:
+    #     """
+    #     Split the document into sections (only implement if task requires splitting)
+    #     Use afind_categories_and_splits pattern from asset_manager_fund_analysis.md
+    #     """
+    #     # TODO: Implement document splitting if needed
+    #     # This step is optional - only implement if the task explicitly requires splitting
+    #     # Example: "split by sections", "process each chapter separately"
+    #     #
+    #     # from test_utils import afind_categories_and_splits
+    #     #
+    #     # split_description = "Find and split by each major section in this document"
+    #     # split_rules = "Split by document sections, chapters, or major headings"
+    #     # split_key = "section"
+    #     #
+    #     # splits = await afind_categories_and_splits(
+    #     #     split_description,
+    #     #     split_key,
+    #     #     ev.nodes,
+    #     #     additional_split_rules=split_rules,
+    #     #     llm=llm,
+    #     #     verbose=self.verbose,
+    #     # )
+    #     # return SplitDocEvent(splits=splits)
+    #     pass
+
+    @step
+    async def extract_data(
+        self, ctx: Context, ev: ParseDocEvent
+    ) -> ExtractDataEvent:
+        """
+        Extract data from the parsed document
+        """
+        # TODO: Implement data extraction
+
+        # PATTERN 1: No splitting - extract from entire document
+        # combined_text = "\n".join([node.get_content(metadata_mode="all") for node in ev.nodes])
+        # result_dict = (await self.extract_agent.aextract(SourceText(text_content=combined_text))).data
+        # extracted_data = YourDataSchema.model_validate(result_dict)
+        # return ExtractDataEvent(data_list=[extracted_data])  # Single item in list
+
+        # PATTERN 2: With splitting - extract from each split (uncomment if splitting is implemented)
+        # from llama_index.core.async_utils import run_jobs
+        #
+        # async def extract_from_split(split_name: str, split_nodes: List[TextNode]) -> YourDataSchema:
+        #     """Extract data from a single split"""
+        #     combined_text = "\n".join([node.get_content(metadata_mode="all") for node in split_nodes])
+        #     result_dict = (await self.extract_agent.aextract(SourceText(text_content=combined_text))).data
+        #     return YourDataSchema.model_validate(result_dict)
+        #
+        # # Get splits from previous step (if splitting was implemented)
+        # # splits = ev.splits  # This would come from SplitDocEvent
+        # # tasks = [extract_from_split(split_name, split_nodes) for split_name, split_nodes in splits.items()]
+        # # extracted_data_list = await run_jobs(tasks, workers=8, show_progress=True)
+        # # return ExtractDataEvent(data_list=extracted_data_list)  # Multiple items in list
+
+        pass
+
+    # @step
+    # async def validate_data(self, ctx: Context, ev: ExtractDataEvent) -> ValidateEvent:
+    #     """
+    #     Validate the extracted data (optional validation step)
+    #     Use this if you need to validate data quality, completeness, etc.
+    #     """
+    #     # TODO: Implement data validation if needed
+    #     # Example: Check for required fields, validate data types, etc.
+    #     # validated_data = self.validate_extracted_data(ev.data)
+    #     # return ValidateEvent(validated_data=validated_data)
+    #     pass
+
+    # @step
+    # async def transform_data(self, ctx: Context, ev: ExtractDataEvent) -> TransformEvent:
+    #     """
+    #     Transform the extracted data (optional transformation step)
+    #     Use this if you need to calculate derived fields, format data, etc.
+    #     """
+    #     # TODO: Implement data transformation if needed
+    #     # Example: Calculate growth rates, format currency, aggregate metrics
+    #     # transformed_data = self.transform_extracted_data(ev.data)
+    #     # return TransformEvent(transformed_data=transformed_data)
+    #     pass
+
+    @step
+    async def analyze_results(
+        self, ctx: Context, ev: ExtractDataEvent
+    ) -> StopEvent:
+        """
+        Analyze and format the extracted results
+        """
+        # TODO: Implement result analysis and output
+        # This could include creating DataFrames, saving to files, etc.
+
+        # Always work with a list - single item for no splitting, multiple items for splitting
+        # import pandas as pd
+        # df = pd.DataFrame([data.dict() for data in ev.data_list])
+        #
+        # # Save results to file
+        # df.to_csv(self.output_file, index=False)
+        #
+        # # Print summary if verbose
+        # if self.verbose:
+        #     print(f"Extracted {len(ev.data_list)} records")
+        #     print(f"Results saved to: {self.output_file}")
+        #     print("\nSummary:")
+        #     print(df.head())
+        #
+        # return StopEvent(result={"dataframe": df, "raw_data": ev.data_list, "output_file": self.output_file})
+
+        pass
+
+
+# =============================================================================
+# MAIN FUNCTION (EXAMPLE)
+# =============================================================================
+
+
+async def main():
+    """
+    Main function to run the workflow with configurable input files
+    """
+    # Set up argument parsing
+    parser = argparse.ArgumentParser(
+        description="Document Processing Workflow"
+    )
+    parser.add_argument(
+        "input_files", nargs="+", help="Input files to process"
+    )
+    parser.add_argument(
+        "--output", "-o", default="results.csv", help="Output file path"
+    )
+    parser.add_argument(
+        "--project-id", "-p", default=project_id, help="LlamaCloud project ID"
+    )
+    parser.add_argument(
+        "--organization-id",
+        "-org",
+        default=organization_id,
+        help="LlamaCloud organization ID",
+    )
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Enable verbose output"
+    )
+
+    args = parser.parse_args()
+
+    # Note: project_id and organization_id are typically set at module level
+    # and don't need to be updated here unless you want to override them
+
+    print(f"Processing {len(args.input_files)} file(s)...")
+
+    # Process each input file
+    all_results = []
+    for file_path in args.input_files:
+        print(f"Processing: {file_path}")
+        try:
+            # Initialize and run workflow
+            workflow = YourWorkflow(
+                llama_parser=llama_parser,
+                extract_agent=extract_agent,
+                output_file=args.output,
+                verbose=args.verbose,
+                timeout=None,
+            )
+
+            result = await workflow.run(file_path=file_path)
+            all_results.append(result)
+            print(f"Successfully processed: {file_path}")
+        except Exception as e:
+            print(f"Error processing {file_path}: {e}")
+            continue
+
+    # Final analysis and output
+    if all_results:
+        # Results are already saved by the workflow
+        if args.verbose:
+            print(f"\nAll files processed successfully!")
+            print(f"Results saved to: {args.output}")
+        return all_results
+    else:
+        print("No files were successfully processed")
+        return None
+
+
+if __name__ == "__main__":
+    # Run the workflow
+    asyncio.run(main())
+```
