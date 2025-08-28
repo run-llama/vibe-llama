@@ -24,6 +24,14 @@ uv add llama-cloud-services
 
 ```
 
+It is important to remember that, before using any of these services, you need to have the `LLAMA_CLOUD_API_KEY` set in your environment:
+
+```bash
+export LLAMA_CLOUD_API_KEY="***"
+```
+
+There is thus no need to pass the API key directly as an argument to any of the services listed below.
+
 Let's see some examples of how to interact with the various services.
 
 ### Parse
@@ -34,10 +42,15 @@ You can get started by creating simple scripts:
 from llama_cloud_services import LlamaParse
 
 parser = LlamaParse(
-    api_key="llx-...",  # can also be set in your env as LLAMA_CLOUD_API_KEY
-    num_workers=4,  # if multiple files passed, split in `num_workers` API calls
-    verbose=True,
-    language="en",  # Optionally you can define a language, default=en
+    parse_mode="parse_page_with_agent",
+    model="openai-gpt-4-1-mini",
+    high_res_ocr=True,
+    adaptive_long_table=True,
+    outlined_table_extraction=True,
+    output_tables_as_HTML=True,
+    result_type="markdown",
+    project_id=project_id,
+    organization_id=organization_id,
 )
 
 # sync
@@ -87,6 +100,55 @@ tables = parser.get_tables(result)
 
 See more details about the result object in the [example notebook](https://www.notion.so/llamaindex/docs/examples-py/parse/demo_json_tour.ipynb).
 
+### Using different parse pre-sets
+
+In the following examples, you will find some sets of arguments that you can pass to LlamaParse. Please, make sure to use only these pre-defined sets of arguments when initializing LlamaParse.
+
+```python
+from llama_cloud_services import LlamaParse
+
+# Cost-Effective Mode
+llama_parser = LlamaParse(
+    # See how to get your API key at https://docs.cloud.llamaindex.ai/api_key
+    parse_mode="parse_page_with_llm",
+    high_res_ocr=True,
+    adaptive_long_table=True,
+    outlined_table_extraction=True,
+    output_tables_as_HTML=True,
+    result_type="markdown",
+    project_id=project_id,
+    organization_id=organization_id,
+)
+
+# Agentic Mode (Default)
+llama_parser = LlamaParse(
+    # See how to get your API key at https://docs.cloud.llamaindex.ai/api_key
+    parse_mode="parse_page_with_agent",
+    model="openai-gpt-4-1-mini",
+    high_res_ocr=True,
+    adaptive_long_table=True,
+    outlined_table_extraction=True,
+    output_tables_as_HTML=True,
+    result_type="markdown",
+    project_id=project_id,
+    organization_id=organization_id,
+)
+
+# Agentic Plus Mode
+llama_parser = LlamaParse(
+    # See how to get your API key at https://docs.cloud.llamaindex.ai/api_key
+    parse_mode="parse_page_with_agent",
+    model="anthropic-sonnet-4.0",
+    high_res_ocr=True,
+    adaptive_long_table=True,
+    outlined_table_extraction=True,
+    output_tables_as_HTML=True,
+    result_type="markdown",
+    project_id=project_id,
+    organization_id=organization_id,
+)
+```
+
 ### Using with file object / bytes
 
 You can parse a file object directly:
@@ -95,10 +157,15 @@ You can parse a file object directly:
 from llama_cloud_services import LlamaParse
 
 parser = LlamaParse(
-    api_key="llx-...",  # can also be set in your env as LLAMA_CLOUD_API_KEY
-    num_workers=4,  # if multiple files passed, split in `num_workers` API calls
-    verbose=True,
-    language="en",  # Optionally you can define a language, default=en
+    parse_mode="parse_page_with_agent",
+    model="openai-gpt-4-1-mini",
+    high_res_ocr=True,
+    adaptive_long_table=True,
+    outlined_table_extraction=True,
+    output_tables_as_HTML=True,
+    result_type="markdown",
+    project_id=project_id,
+    organization_id=organization_id,
 )
 
 file_name = "my_file1.pdf"
@@ -124,9 +191,15 @@ from llama_cloud_services import LlamaParse
 from llama_index.core import SimpleDirectoryReader
 
 parser = LlamaParse(
-    api_key="llx-...",  # can also be set in your env as LLAMA_CLOUD_API_KEY
-    result_type="markdown",  # "markdown" and "text" are available
-    verbose=True,
+    parse_mode="parse_page_with_agent",
+    model="openai-gpt-4-1-mini",
+    high_res_ocr=True,
+    adaptive_long_table=True,
+    outlined_table_extraction=True,
+    output_tables_as_HTML=True,
+    result_type="markdown",
+    project_id=project_id,
+    organization_id=organization_id,
 )
 
 file_extractor = {".pdf": parser}
@@ -147,7 +220,12 @@ from llama_cloud import ExtractConfig, ExtractMode
 from pydantic import BaseModel, Field
 
 # Initialize client
-extractor = LlamaExtract(api_key="YOUR_API_KEY")
+extractor = LlamaExtract(
+    show_progress=True,
+    check_interval=5,
+    project_id=project_id,
+    organization_id=organization_id,
+)
 
 
 # Define schema using Pydantic
@@ -158,7 +236,20 @@ class Resume(BaseModel):
 
 
 # Configure extraction settings
-config = ExtractConfig(extraction_mode=ExtractMode.FAST)
+extract_config = ExtractConfig(
+    # Basic options
+    extraction_mode=ExtractMode.MULTIMODAL,  # FAST, BALANCED, MULTIMODAL, PREMIUM
+    extraction_target=ExtractTarget.PER_DOC,  # PER_DOC, PER_PAGE
+    system_prompt="<Insert relevant context for extraction>",  # set system prompt - can leave blank
+    # Advanced options
+    chunk_mode=ChunkMode.PAGE,  # PAGE, SECTION
+    high_resolution_mode=True,  # Enable for better OCR
+    nvalidate_cache=False,  # Set to True to bypass cache
+    # Extensions
+    cite_sources=True,  # Enable citations
+    use_reasoning=True,  # Enable reasoning (not available in FAST mode)
+    confidence_scores=True,  # Enable confidence scores (MULTIMODAL/PREMIUM only)
+)
 
 # Extract data directly from document - no agent needed!
 result = extractor.extract(Resume, config, "resume.pdf")
@@ -478,10 +569,6 @@ You can create an index on LlamaCloud using the following code. By default, new 
 
 ```python
 import os
-
-os.environ[
-    "LLAMA_CLOUD_API_KEY"
-] = "llx-..."  # can provide API-key in env or in the constructor later on
 
 from llama_index.core import SimpleDirectoryReader
 from llama_cloud_services import LlamaCloudIndex
