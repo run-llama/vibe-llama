@@ -18,6 +18,7 @@ agent_rules = {
     "vibe-llama docuflows": ".vibe-llama/rules/AGENTS.md",
 }
 
+# NEED TO CHANGE THE URLs BACK BEFORE MERGING (will cause test failures)
 services = {
     "LlamaIndex": "https://docs.llamaindex.ai/en/latest/llms.txt",
     "LlamaCloud Services": "https://raw.githubusercontent.com/run-llama/vibe-llama/clelia/docs-mcp/documentation/llamacloud.md",

@@ -7,6 +7,13 @@ from vibe_llama.starter import mcp_server
 
 
 class VibeLlamaMCPClient:
+    """
+    Client for vibe-llama MCP server.
+
+    Attributes:
+        client (Client): Client for the MCP server
+    """
+
     def __init__(self) -> None:
         self.client = Client(mcp_server)
 

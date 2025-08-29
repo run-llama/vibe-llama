@@ -1,5 +1,6 @@
 import pytest
 import os
+import shutil
 from pathlib import Path
 
 from typing import Tuple
@@ -66,6 +67,8 @@ def test__send_event(ctx: Context[WorkflowState]) -> None:
 
 @pytest.mark.asyncio
 async def test_load_context_files(ctx: Context[WorkflowState]) -> None:
+    if os.path.exists(".vibe-llama/rules"):
+        shutil.rmtree(".vibe-llama/rules")
     retval = await load_context_files(ctx)
     with open("documentation/llama-index-workflows.md") as f:
         wfs = f.read()
