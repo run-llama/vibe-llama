@@ -1,11 +1,11 @@
 from fastmcp import FastMCP
 from .utils import Retriever
 
-mcp: FastMCP = FastMCP(name="VibeLlama MCP")
+mcp_server: FastMCP = FastMCP(name="VibeLlama MCP")
 retr = Retriever()
 
 
-@mcp.tool(
+@mcp_server.tool(
     name="get_relevant_context",
     title="Get Relevant Context from LlamaIndex LLM-friendly documentation",
     description="The get_relevant_context tool serves the purporse of getting relevant chunks of context from documentation starting from a query (str) argument",

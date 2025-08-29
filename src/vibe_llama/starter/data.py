@@ -20,6 +20,6 @@ agent_rules = {
 
 services = {
     "LlamaIndex": "https://docs.llamaindex.ai/en/latest/llms.txt",
-    "LlamaCloud Services": "https://raw.githubusercontent.com/run-llama/vibe-llama/main/documentation/llamacloud.md",
-    "llama-index-workflows": "https://raw.githubusercontent.com/run-llama/vibe-llama/main/documentation/llama-index-workflows.md",
+    "LlamaCloud Services": "https://raw.githubusercontent.com/run-llama/vibe-llama/clelia/docs-mcp/documentation/llamacloud.md",
+    "llama-index-workflows": "https://raw.githubusercontent.com/run-llama/vibe-llama/clelia/docs-mcp/documentation/llama-index-workflows.md",
 }

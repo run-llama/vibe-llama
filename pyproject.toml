@@ -17,13 +17,14 @@ description = "vibe-llama is a set of tools that are designed to help developers
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "fastembed>=0.7.2",
+  "bm25s>=0.2.13",
   "fastmcp>=2.11.3",
   "httpx>=0.28.1",
   "llama-cloud-services>=0.6.54",
   "llama-index>=0.13.2",
   "llama-index-llms-anthropic>=0.8.4",
   "prompt-toolkit>=3.0.51",
+  "pystemmer>=3.0.0",
   "rich>=14.1.0",
   "rich-gradient>=0.3.3"
 ]
