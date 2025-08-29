@@ -10,6 +10,7 @@ from .mcp import mcp_server
 async def starter(
     agent: Optional[str] = None,
     service: Optional[str] = None,
+    overwrite_files: Optional[bool] = None,
     verbose: Optional[bool] = None,
 ) -> None:
     cs = Console(stderr=True)
@@ -20,7 +21,7 @@ async def starter(
                 "[bold red]ERROR[/]\tYou need to choose at least one agent and one service before continuining. Exiting..."
             )
             return None
-        agent_files, service_urls = term_res
+        agent_files, service_urls, overwrite_files = term_res
         if agent_files is None or service_urls is None:
             cs.log(
                 "[bold red]ERROR[/]\tYou need to choose at least one agent and one service before continuining. Exiting..."
@@ -55,7 +56,7 @@ async def starter(
     for fl in agent_files:
         if verbose:
             cs.log(f"[bold cyan]WRITING[/]\t{fl}")
-        write_file(fl, instructions, ", ".join(service_urls))
+        write_file(fl, instructions, overwrite_files or False, ", ".join(service_urls))
         if verbose:
             cs.log("[bold green]WRITTEN✅[/]")
     cs.log(
