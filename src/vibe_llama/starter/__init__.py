@@ -4,6 +4,7 @@ from rich.console import Console
 from .terminal import run_terminal_interface
 from .utils import write_file, get_instructions
 from .data import agent_rules, services
+from .mcp import mcp_server
 
 
 async def starter(
@@ -64,4 +65,4 @@ async def starter(
     return None
 
 
-__all__ = ["starter", "agent_rules", "services"]
+__all__ = ["starter", "agent_rules", "services", "mcp_server"]

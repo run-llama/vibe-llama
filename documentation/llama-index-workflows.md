@@ -26,6 +26,8 @@ Once you installed them, you can use them within your code under the `workflows`
 from workflows import Workflow, Context, step
 ```
 
+<!-- sep---sep -->
+
 ## 2. The Core Components
 
 ### 2.1 Event
@@ -74,6 +76,8 @@ event = SomeEvent(data="hello world")
 event.data = "hello universe"
 print(event.data)
 ```
+
+<!-- sep---sep -->
 
 ### 2.2 Context
 
@@ -128,6 +132,8 @@ class ExampleWorkflow(Workflow):
 
 It is advisable to use a customized State to avoid unexpected behaviors.
 
+<!-- sep---sep -->
+
 **2.2.b Store**
 
 Store is, by default, a dict-like object contained in the Context: it is mainly used for more long-term storage, and you can get and set values in this way:
@@ -149,6 +155,8 @@ class ExampleWorkflow(Workflow):
 ```
 
 Unless motivated by specific reasons, it is advisable to use `state` over `store` .
+
+<!-- sep---sep -->
 
 **2.2.c Emitting and collecting events**
 
@@ -219,6 +227,8 @@ class ConcurrentFlow(Workflow):
         return StopEvent(result="Done")
 ```
 
+<!-- sep---sep -->
+
 **2.2.d Serializing Context**
 
 The context can be serialized into a dict. This is useful for saving state between `.run()` calls and letting steps access state store variables from previous runs, or even checkpointing state as a workflow is running.
@@ -244,6 +254,8 @@ result = await w.run(..., ctx=ctx)
 ```
 
 Context serialization relies on your workflow events and workflow state store containing serializable data. If you store arbitrary objects, or don’t leverage pydantic functionalities to control serialization of state/events, you may encounter errors.
+
+<!-- sep---sep -->
 
 ### 2.3 Resources
 
@@ -283,6 +295,8 @@ class WorkflowWithResource(Workflow):
 - Factory function return type must match declared type
 - Resources are shared across steps by default (cached)
 - Use `Resource(factory_func, cache=False)` to avoid steps sharing the same resource
+
+<!-- sep---sep -->
 
 ### 2.4 The Workflow
 
@@ -332,6 +346,8 @@ w = JokeFlow(timeout=60, verbose=False)
 result = await w.run(topic="pirates")
 print(str(result))
 ```
+
+<!-- sep---sep -->
 
 As you can see, running a workflow is an asynchronous operation. You can also create an asynchronous iterator over the events produced by the workflow (you need to explicitly emit them with `ctx.write_event_to_stream` within the workflow) and read these events _while_ they are produced:
 
@@ -385,6 +401,8 @@ if __name__ == "__main__":
 
     asyncio.run(main())
 ```
+
+<!-- sep---sep -->
 
 ## 3. Design Patterns
 
@@ -442,6 +460,8 @@ final_result = await handler
 ```
 
 The workflow waits for `HumanResponseEvent` emission and supports flexible input handling (input(), websockets, async state, etc.).
+
+<!-- sep---sep -->
 
 ### 3.2 Branching and Looping
 
@@ -516,6 +536,8 @@ class BranchWorkflow(Workflow):
 
 You can combine branches and loops in any order. Later sections cover running multiple branches in parallel using `send_event` and synchronizing them with `collect_events`.
 
+<!-- sep---sep -->
+
 ### 3.3 Fan in/Fan out
 
 Using async concurrency, users can dispatch multiple events at once, run work concurrently, and collecting the results. With workflows, this happens using the `send_event` and `collect_events` methods.
@@ -556,6 +578,8 @@ class FanInFanOut(Workflow):
 The `init_run` step emits several `ProcessEvent`s. The step signature is still annotated that it returns `ProcessEvent` even though it doesn't technically, in order to help validate the workflow.
 
 `finalize()` will be triggered each time a `ResultEvent` comes in, and will only complete once all events are present.
+
+<!-- sep---sep -->
 
 ## 4. Building Workflows with LlamaCloud Services
 
