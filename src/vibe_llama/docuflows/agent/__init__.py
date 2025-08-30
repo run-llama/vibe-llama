@@ -64,7 +64,7 @@ from vibe_llama.docuflows.handlers.workflow_testing import (
 )
 
 # Import utility classes
-from vibe_llama.docuflows.commons import StreamEvent, validate_uuid
+from vibe_llama.docuflows.commons import StreamEvent, validate_uuid, is_file_path
 
 # Initialize rich console
 console = Console()
@@ -189,8 +189,8 @@ What kind of document processing workflow would you like to create?"""
         if user_input.lower() in ["quit", "exit", "bye"]:
             return StopEvent(result="👋 Goodbye!")
 
-        # Handle slash commands
-        if user_input.startswith("/"):
+        # Handle slash commands (but not file paths)
+        if user_input.startswith("/") and not is_file_path(user_input):
             return await handle_slash_command(ctx, user_input)
 
         # Handle help
