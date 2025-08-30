@@ -66,9 +66,9 @@ def test_is_file_path() -> None:
     """Test file path vs command detection"""
     # File paths should return True
     assert is_file_path("/Users/user/documents/file.pdf")
-    assert is_file_path("@data/test.pdf") 
+    assert is_file_path("@data/test.pdf")
     assert is_file_path("/absolute/path/with/file.txt")
-    
+
     # Commands should return False
     assert not is_file_path("/help")
     assert not is_file_path("/config")
@@ -78,7 +78,9 @@ def test_is_file_path() -> None:
 def test_clean_file_path_with_at_symbol() -> None:
     """Test @ symbol removal in file paths"""
     assert clean_file_path("@data/test.pdf").endswith("data/test.pdf")
-    assert clean_file_path("/absolute/path.pdf") == os.path.abspath("/absolute/path.pdf")
+    assert clean_file_path("/absolute/path.pdf") == os.path.abspath(
+        "/absolute/path.pdf"
+    )
     assert "@" not in clean_file_path("@some/file.txt")
 
 
