@@ -23,6 +23,7 @@ from vibe_llama.docuflows.commons import (
     Dependencies,
     local_venv,
     install_deps,
+    clean_file_path,
 )
 from vibe_llama.sdk import VibeLlamaStarter
 from vibe_llama.docuflows.commons.typed_state import WorkflowState
@@ -127,14 +128,17 @@ async def handle_test_file_validation(
 ) -> InputRequiredEvent:
     """Validate test file path and handle directory vs file logic"""
 
+    # Clean the test file path (remove @ symbol if present)
+    cleaned_path = clean_file_path(test_file_path)
+
     # If user provided a directory, show available files and ask for selection
-    if os.path.isdir(test_file_path):
-        files_in_dir = get_test_file_suggestions(test_file_path)
+    if os.path.isdir(cleaned_path):
+        files_in_dir = get_test_file_suggestions(cleaned_path)
 
         if not files_in_dir:
             ctx.write_event_to_stream(
                 StreamEvent(  # type: ignore
-                    delta=f"❌ No suitable files found in directory: {test_file_path}\n"
+                    delta=f"❌ No suitable files found in directory: {cleaned_path}\n"
                 )
             )
             return InputRequiredEvent(
@@ -143,13 +147,13 @@ async def handle_test_file_validation(
             )
 
         # Show available files in a nice panel
-        relative_files = [os.path.relpath(f, test_file_path) for f in files_in_dir]
+        relative_files = [os.path.relpath(f, cleaned_path) for f in files_in_dir]
         ctx.write_event_to_stream(
             StreamEvent(  # type: ignore
                 delta="",
                 rich_content=CLIFormatter.file_list(
                     relative_files,
-                    f"📁 Found {len(files_in_dir)} files in {test_file_path}",
+                    f"📁 Found {len(files_in_dir)} files in {cleaned_path}",
                 ),
                 newline_after=True,
             )
@@ -161,12 +165,12 @@ async def handle_test_file_validation(
             "You can describe it in natural language (e.g., 'the PDF file', 'maritime report', 'first file') or provide a specific path: ",
             tag="file_selection",  # type: ignore
             available_files=files_in_dir,  # type: ignore
-            base_directory=test_file_path,  # type: ignore
+            base_directory=cleaned_path,  # type: ignore
         )
 
-    if not os.path.exists(test_file_path):
+    if not os.path.exists(cleaned_path):
         ctx.write_event_to_stream(
-            StreamEvent(delta=f"❌ Test file does not exist: {test_file_path}\n")  # type: ignore
+            StreamEvent(delta=f"❌ Test file does not exist: {cleaned_path}\n")  # type: ignore
         )
         return InputRequiredEvent(
             prefix="Please provide a valid file path to test: ",  # type: ignore
@@ -176,7 +180,7 @@ async def handle_test_file_validation(
     # File exists, proceed to execute workflow
     workflow_path = (await ctx.store.get_state()).current_workflow_path
     return await execute_workflow(
-        ctx, cast(str, workflow_path), test_file_path, llm, analysis
+        ctx, cast(str, workflow_path), cleaned_path, llm, analysis
     )
 
 

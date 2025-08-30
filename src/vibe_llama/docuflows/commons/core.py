@@ -190,12 +190,21 @@ async def load_reference_files(
             organization_id=organization_id,
         )
 
-        # Get all files in the directory, excluding system files and unsupported formats
-        all_files = [
-            f
-            for f in os.listdir(reference_files_path)
-            if os.path.isfile(os.path.join(reference_files_path, f))
-        ]
+        # Handle both single files and directories
+        if os.path.isfile(reference_files_path):
+            # Single file case
+            directory_path = os.path.dirname(reference_files_path)
+            filename = os.path.basename(reference_files_path)
+            all_files = [filename]
+            actual_reference_path = directory_path
+        else:
+            # Directory case
+            all_files = [
+                f
+                for f in os.listdir(reference_files_path)
+                if os.path.isfile(os.path.join(reference_files_path, f))
+            ]
+            actual_reference_path = reference_files_path
 
         # Filter out system files and keep only supported document types
         supported_extensions = {
@@ -235,7 +244,7 @@ async def load_reference_files(
 
         # Parse each file
         for filename in sorted(files):
-            file_path = os.path.join(reference_files_path, filename)
+            file_path = os.path.join(actual_reference_path, filename)
             try:
                 _send_event(ctx, f"Parsing reference file: {filename}")
 

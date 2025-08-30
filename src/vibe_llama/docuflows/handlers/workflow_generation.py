@@ -150,7 +150,12 @@ async def handle_generate_workflow(
 
     if not reference_files_path:
         return InputRequiredEvent(
-            prefix="Please provide the path to your reference files (directory or specific file): "  # type: ignore
+            prefix="Please provide the path to your reference files.\n"  # type: ignore
+            "This can be:\n"
+            "• A directory containing sample files (e.g., /path/to/reports/ or ./examples/)\n"
+            "• A specific file to use as reference (e.g., /path/to/sample.pdf or ./data/report.pdf)\n"
+            "• Use @ symbol for path completion (e.g., @data/ then press Tab)\n\n"
+            "Path: "
         )
 
     # Clean the reference files path (remove @ symbol if present)
@@ -168,7 +173,10 @@ async def handle_generate_workflow(
             )
         )
         return InputRequiredEvent(
-            prefix="Please provide a valid reference files path (directory or file): "  # type: ignore
+            prefix="Please provide a valid path to your reference files.\n"  # type: ignore
+            "This can be a directory containing sample files or a specific sample file.\n"
+            "Use @ symbol for path completion (e.g., @data/ then press Tab)\n\n"
+            "Path: "
         )
 
     # Show tool action with bold formatting - no truncation
@@ -195,8 +203,8 @@ async def handle_generate_workflow(
                 newline_after=True,
             )
         )
-        # For single files, we'll pass the parent directory to the workflow but note the specific file
-        reference_files_path = os.path.dirname(cleaned_path)
+        # Pass the actual file path for single files
+        reference_files_path = cleaned_path
     else:
         ctx.write_event_to_stream(
             StreamEvent(  # type: ignore
