@@ -12,10 +12,11 @@ async def test_get_text_chunks() -> None:
     assert len(res) > 0
     llamacloud = await get_instructions(services["LlamaCloud Services"])
     wfs = await get_instructions(services["llama-index-workflows"])
-    if llamacloud and wfs:
+    llindex = await get_instructions(services["LlamaIndex"])
+    if llamacloud and wfs and llindex:
         assert len(llamacloud.split(CHUNKS_SEPARATOR)) + len(
             wfs.split(CHUNKS_SEPARATOR)
-        ) == len(res)
+        ) + len(llindex.split(CHUNKS_SEPARATOR)) == len(res)
 
 
 @pytest.mark.asyncio

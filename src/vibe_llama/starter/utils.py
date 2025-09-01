@@ -29,7 +29,7 @@ alwaysApply: false
 ---
 
 """
-        content = frontmatter + "\n" + content
+        content = frontmatter + "\n" + content.replace(CHUNKS_SEPARATOR, "")
     with open(file_path, "w") as w:
         w.write(content)
     return None
@@ -44,7 +44,7 @@ async def get_instructions(
             if retries < max_retries:
                 response = await client.get(instructions_url)
                 if response.status_code == 200:
-                    return response.text.replace(CHUNKS_SEPARATOR, "")
+                    return response.text
                 else:
                     retries += 1
                     await asyncio.sleep(retry_interval)
