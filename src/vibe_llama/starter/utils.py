@@ -44,7 +44,7 @@ async def get_instructions(
             if retries < max_retries:
                 response = await client.get(instructions_url)
                 if response.status_code == 200:
-                    return response.text
+                    return response.text.replace(CHUNKS_SEPARATOR, "")
                 else:
                     retries += 1
                     await asyncio.sleep(retry_interval)
@@ -55,16 +55,22 @@ async def get_instructions(
 async def get_text_chunks() -> List[str]:
     llamacloud = await get_instructions(services["LlamaCloud Services"])
     wfs = await get_instructions(services["llama-index-workflows"])
+    llindex = await get_instructions(services["LlamaIndex"])
     wfs_chunks: List[str] = []
     llamacloud_chunks: List[str] = []
+    llindex_chunks: List[str] = []
     if wfs:
         wfs_chunks = wfs.split(CHUNKS_SEPARATOR)
     if llamacloud:
         llamacloud_chunks = llamacloud.split(CHUNKS_SEPARATOR)
+    if llindex:
+        llindex_chunks = llindex.split(CHUNKS_SEPARATOR)
     # filter out empty chunks
-    return [chunk for chunk in wfs_chunks if chunk] + [
-        chunk for chunk in llamacloud_chunks if chunk
-    ]
+    return (
+        [chunk for chunk in wfs_chunks if chunk]
+        + [chunk for chunk in llamacloud_chunks if chunk]
+        + [chunk for chunk in llindex_chunks if chunk]
+    )
 
 
 class Retriever:

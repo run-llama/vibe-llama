@@ -20,7 +20,7 @@ agent_rules = {
 
 # NEED TO CHANGE THE URLs BACK BEFORE MERGING (will cause test failures)
 services = {
-    "LlamaIndex": "https://docs.llamaindex.ai/en/latest/llms.txt",
+    "LlamaIndex": "https://raw.githubusercontent.com/run-llama/vibe-llama/clelia/docs-mcp/documentation/llamaindex.md",
     "LlamaCloud Services": "https://raw.githubusercontent.com/run-llama/vibe-llama/clelia/docs-mcp/documentation/llamacloud.md",
     "llama-index-workflows": "https://raw.githubusercontent.com/run-llama/vibe-llama/clelia/docs-mcp/documentation/llama-index-workflows.md",
 }
