@@ -147,7 +147,11 @@ await starter.write_instructions(
 
 ### `VibeLlamaMCPClient`
 
-This class implements an MCP client for vibe-llama MCP server.
+> [!NOTE]
+>
+> _To interact with vibe-llama MCP server you can use any MCP client of your liking_.
+
+This class implements an MCP client to interact directly and in a well-integrated way with vibe-llama MCP server.
 
 You can use it as follows:
 
@@ -159,11 +163,20 @@ client = VibeLlamaMCPClient()
 # list the available tools
 await client.list_tools()
 
-# call a specific tool with arguments
-await client.call_tool("get_relevant_context", {"query": "Human in the loop"})
-
 # retrieve specific documentation content
 await client.retrieve_docs(query="Parsing pre-sets in LlamaParse")
+
+# retrieve a certain number of matches
+await client.retrieve_docs(query="Human in the loop", top_k=4)
+
+# retrieve matches and parse the returned XML string
+result = await client.retrieve_docs(
+    query="Workflow Design Patterns", top_k=3, parse_xml=True
+)
+if "result" in result:
+    print(result["result"])  # -> List of the top three matches for your query
+else:
+    print(result["error"])  # -> List of error messages
 ```
 
 ### `VibeLlamaDocsRetriever`

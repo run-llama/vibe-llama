@@ -3,6 +3,7 @@ import Stemmer
 
 from vibe_llama.starter.utils import get_text_chunks, Retriever, get_instructions
 from vibe_llama.starter import services
+from vibe_llama.starter.constants import CHUNKS_SEPARATOR
 
 
 @pytest.mark.asyncio
@@ -12,8 +13,8 @@ async def test_get_text_chunks() -> None:
     llamacloud = await get_instructions(services["LlamaCloud Services"])
     wfs = await get_instructions(services["llama-index-workflows"])
     if llamacloud and wfs:
-        assert len(llamacloud.split("<!-- sep---sep -->")) + len(
-            wfs.split("<!-- sep---sep -->")
+        assert len(llamacloud.split(CHUNKS_SEPARATOR)) + len(
+            wfs.split(CHUNKS_SEPARATOR)
         ) == len(res)
 
 

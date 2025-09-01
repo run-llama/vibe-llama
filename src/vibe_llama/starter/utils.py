@@ -8,6 +8,7 @@ from pathlib import Path
 from bm25s.tokenization import Tokenized
 from typing import Optional, List, Union
 from .data import services
+from .constants import CHUNKS_SEPARATOR
 
 
 def write_file(
@@ -57,10 +58,13 @@ async def get_text_chunks() -> List[str]:
     wfs_chunks: List[str] = []
     llamacloud_chunks: List[str] = []
     if wfs:
-        wfs_chunks = wfs.split("<!-- sep---sep -->")
+        wfs_chunks = wfs.split(CHUNKS_SEPARATOR)
     if llamacloud:
-        llamacloud_chunks = llamacloud.split("<!-- sep---sep -->")
-    return wfs_chunks + llamacloud_chunks
+        llamacloud_chunks = llamacloud.split(CHUNKS_SEPARATOR)
+    # filter out empty chunks
+    return [chunk for chunk in wfs_chunks if chunk] + [
+        chunk for chunk in llamacloud_chunks if chunk
+    ]
 
 
 class Retriever:

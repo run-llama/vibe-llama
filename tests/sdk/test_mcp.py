@@ -2,7 +2,6 @@ import socket
 import pytest
 
 from fastmcp import Client
-from fastmcp.client.client import CallToolResult
 from vibe_llama.sdk import VibeLlamaMCPClient
 
 
@@ -35,22 +34,12 @@ async def test_tools_list():
     condition=(not is_port_open("127.0.0.1", 8000)), reason="MCP server not available"
 )
 @pytest.mark.asyncio
-async def test_call_tool():
-    mcp_client = VibeLlamaMCPClient()
-    res = await mcp_client.call_tool(
-        "get_relevant_context", {"query": "Human in the loop"}
-    )
-    assert isinstance(res, CallToolResult)
-    assert hasattr(res.content[0], "text")
-    assert "Rank" in res.content[0].text  # type: ignore
-
-
-@pytest.mark.skipif(
-    condition=(not is_port_open("127.0.0.1", 8000)), reason="MCP server not available"
-)
-@pytest.mark.asyncio
 async def test_retrieve_docs():
     mcp_client = VibeLlamaMCPClient()
     res = await mcp_client.retrieve_docs("Human in the loop")
     assert isinstance(res, str)
-    assert "Rank" in res
+    assert "<result>" in res
+    res1 = await mcp_client.retrieve_docs("Human in the loop", top_k=4, parse_xml=True)
+    assert isinstance(res1, dict)
+    assert "result" in res1
+    assert len(res1["result"]) <= 4
