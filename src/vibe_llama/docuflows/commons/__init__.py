@@ -395,6 +395,30 @@ def clean_file_path(path: str) -> str:
     return os.path.abspath(path) if path else path
 
 
+def is_file_path(input_str: str) -> bool:
+    """
+    Determine if a string that starts with '/' is likely a file path rather than a command.
+
+    Returns True if it's likely a file path, False if it's likely a command.
+    """
+    # Remove leading @ symbol if present
+    cleaned_path = input_str[1:] if input_str.startswith("@") else input_str
+
+    # If it has multiple path components or file extensions, it's likely a path
+    if "/" in cleaned_path[1:] or "." in os.path.basename(cleaned_path):
+        return True
+
+    # If it exists as a file or directory, it's a path
+    if os.path.exists(cleaned_path):
+        return True
+
+    # If it looks like a Unix absolute path (not just "/command"), it's likely a path
+    if len(cleaned_path.split("/")) > 2:  # More than just "/" + single word
+        return True
+
+    return False
+
+
 def validate_reference_path(path: str) -> tuple[bool, str, str]:
     """
     Validate a reference files path and provide helpful error messages.
