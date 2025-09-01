@@ -2266,7 +2266,7 @@ wheels = [
 
 [[package]]
 name = "vibe-llama"
-version = "0.3.4"
+version = "0.3.5"
 source = { editable = "." }
 dependencies = [
     { name = "httpx" },
