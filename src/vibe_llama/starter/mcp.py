@@ -8,7 +8,7 @@ retr = Retriever()
 @mcp_server.tool(
     name="get_relevant_context",
     title="Get Relevant Context from LlamaIndex LLM-friendly documentation",
-    description="The get_relevant_context tool serves the purporse of getting relevant chunks of context from documentation starting from a query (str) and a top_k (int, maximum number of top matches to retrieve) argument. It returns an XML-formatted string using the <match_n> tag to delimit a match and the <content> tag to delimit the match text content.",
+    description="The get_relevant_context tool serves the purporse of getting relevant chunks of context from documentation starting from a query (str) and a top_k (int, maximum number of top matches to retrieve) argument. The query should be more a keyword-base search query than a natural-language question. It returns an XML-formatted string using the <match> tag to delimit a match and the <content> tag to delimit the match text content.",
 )
 async def get_relevant_context(query: str, top_k: int) -> str:
     doc_hits = await retr.retrieve(query, top_k)
