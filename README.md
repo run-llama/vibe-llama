@@ -70,12 +70,15 @@ Use the `-v`/`--verbose` flag (independently from TUI or CLI) if you want verbos
 
 Use the `-w`/`--overwrite` flag (works only from CLI) if you want to overwrite local files with the incoming ones downloaded by `vibe-llama starter`. On the TUI, you will be prompted to choose whether you want to overwrite existing files or not.
 
+With `starter`, you can also launch a local MCP server (at http://127.0.0.1:8000/mcp) using the `-m`/`--mcp` flag. This server exposes a tool (`get_relevant_context`) that allows you to retrieve relevant documentation content based on a specific query. If you are interested in interacting with vibe-llama MCP programmatically, you can check the [SDK guide](#vibellamamcpclient).
+
 **Example usage**
 
 ```bash
-vibe-llama starter # launch a TUI
+vibe-llama starter # Launch a TUI
 vibe-llama starter -a 'GitHub Copilot' -s LlamaIndex -v # Select GitHub Copilot and LlamaIndex and enable verbose logging
 vibe-llama starter -a 'Claude Code' -s llama-index-workflows -w # Select Claude Code and llama-index-workflows and allow to overwrite the existing CLAUDE.md
+vibe-llama starter --mcp # Launch an MCP server
 ```
 
 ### docuflows
@@ -97,10 +100,10 @@ export ANTHROPIC_API_KEY="your-anthropic-api-key"
 
 ```powershell
 Set-Location Env:
-$Env:OPENAI_API_KEY = "your-openai-api-key"
-$Env:LLAMA_CLOUD_API_KEY = "your-llama-cloud-api-key"
+$Env:OPENAI_API_KEY="your-openai-api-key"
+$Env:LLAMA_CLOUD_API_KEY="your-llama-cloud-api-key"
 # optionally, for Anthropic usage
-$Env:OPENAI_API_KEY = "your-anthropic-api-key"
+$Env:ANTHROPIC_API_KEY="your-anthropic-api-key"
 ```
 
 Once you have the needed API keys in the environment, running `vibe-llama docuflows` will start a terminal interface where you will be able to interactively talk to the agent and create or edit document-centered workflows with the help of it.
@@ -140,6 +143,53 @@ starter = VibeLlamaStarter(
 await starter.write_instructions(
     verbose=True, max_retries=20, retry_interval=0.7
 )
+```
+
+### `VibeLlamaMCPClient`
+
+> [!NOTE]
+>
+> _To interact with vibe-llama MCP server you can use any MCP client of your liking_.
+
+This class implements an MCP client to interact directly and in a well-integrated way with vibe-llama MCP server.
+
+You can use it as follows:
+
+```python
+from vibe_llama.sdk import VibeLlamaMCPClient
+
+client = VibeLlamaMCPClient()
+
+# list the available tools
+await client.list_tools()
+
+# retrieve specific documentation content
+await client.retrieve_docs(query="Parsing pre-sets in LlamaParse")
+
+# retrieve a certain number of matches
+await client.retrieve_docs(query="Human in the loop", top_k=4)
+
+# retrieve matches and parse the returned XML string
+result = await client.retrieve_docs(
+    query="Workflow Design Patterns", top_k=3, parse_xml=True
+)
+if "result" in result:
+    print(result["result"])  # -> List of the top three matches for your query
+else:
+    print(result["error"])  # -> List of error messages
+```
+
+### `VibeLlamaDocsRetriever`
+
+This class implements a retriever for vibe-llama documentation, leveraging BM25 (enhanced with stemming) for lightweight, on-disk indexing and retrieval.
+
+You can use it as follows:
+
+```python
+retriever = VibeLlamaDocsRetriever()
+
+# retrieve a maximum of 10 relevant documents pertaining to the query 'What is LlamaExtract?'
+await retriever.retrieve(query="What is LlamaExtract?", top_k=10)
 ```
 
 ## Contributing
