@@ -7,6 +7,7 @@ from rich.console import Console
 from .starter import starter, agent_rules, services
 from .docuflows import run_cli
 from .logo import print_logo
+from .scaffold import create_scaffold, SCAFFOLD_DICT
 
 
 def main() -> None:
@@ -24,6 +25,11 @@ def main() -> None:
     starter_parser = subparsers.add_parser(
         "starter",
         help="starter provides your coding agents with up-to-date documentation about LlamIndex, LlamaCloud Services and llama-index-workflows, so that they can build reliable and working applications! You can launch a terminal user interface by running `vibe-llama starter` or you can directly pass your agent (-a, --agent flag) and chosen service (-s, --service flag). If you already have local files and you wish them to be overwritten by the new file you are about to download with starter, use the -w, --overwrite flag.",
+    )
+
+    scaffold_parser = subparsers.add_parser(
+        "scaffold",
+        help="scaffold is a command that allows you to generate working examples of AI-powered workflows for a variety of use cases. Use the -u/--use-case flag to select the use case and -p/--path flag to define the path where the example workflow will be stored (defaults to '.vibe-llama/scaffold')",
     )
 
     _ = subparsers.add_parser(
@@ -67,6 +73,23 @@ def main() -> None:
         default=False,
     )
 
+    scaffold_parser.add_argument(
+        "-u",
+        "--use_case",
+        help="Use case you would like to see an example of",
+        required=False,
+        default="base_example",
+        choices=[key for key in list(SCAFFOLD_DICT.keys())],
+    )
+
+    scaffold_parser.add_argument(
+        "-p",
+        "--path",
+        help="Path where to save the workflow code",
+        required=False,
+        default=None,
+    )
+
     args = parser.parse_args()
 
     if args.command == "starter":
@@ -78,5 +101,9 @@ def main() -> None:
             asyncio.run(run_cli())
         except KeyboardInterrupt:
             console.print("\n👋 Goodbye!", style="bold yellow")
+    elif args.command == "scaffold":
+        print_logo()
+        result = create_scaffold(request=args.use_case, path=args.path)
+        console.log(result)
 
     return None
