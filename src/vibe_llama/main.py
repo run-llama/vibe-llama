@@ -115,6 +115,9 @@ def main() -> None:
         print_logo()
         if not args.use_case and not args.path:
             template, path = asyncio.run(run_scaffold_interface())
+            if template is None and path is None:
+                console.log("[bold red]ERROR[/]\tNo use case chosen, exiting...")
+                return None
             result = asyncio.run(
                 create_scaffold(request=template or "base_example", path=path)
             )  # type: ignore

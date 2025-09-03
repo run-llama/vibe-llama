@@ -38,7 +38,7 @@ async def run_scaffold_interface() -> Tuple[Optional[str], Optional[str]]:
     while path is None:
         template = await app1.run_async()
         if not template:
-            template = "base_example"
+            return None, None
         path = await app2.run_async()
     if path == "":
         path = None
