@@ -7,7 +7,7 @@ from rich.console import Console
 from .starter import starter, agent_rules, services
 from .docuflows import run_cli
 from .logo import print_logo
-from .scaffold import create_scaffold, SCAFFOLD_DICT
+from .scaffold import create_scaffold, PROJECTS
 
 
 def main() -> None:
@@ -79,7 +79,7 @@ def main() -> None:
         help="Use case you would like to see an example of",
         required=False,
         default="base_example",
-        choices=[key for key in list(SCAFFOLD_DICT.keys())],
+        choices=[key for key in list(PROJECTS.keys())],
     )
 
     scaffold_parser.add_argument(
@@ -103,7 +103,7 @@ def main() -> None:
             console.print("\n👋 Goodbye!", style="bold yellow")
     elif args.command == "scaffold":
         print_logo()
-        result = create_scaffold(request=args.use_case, path=args.path)
+        result = asyncio.run(create_scaffold(request=args.use_case, path=args.path))
         console.log(result)
 
     return None

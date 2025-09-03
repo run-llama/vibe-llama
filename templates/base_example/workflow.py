@@ -1,4 +1,3 @@
-BASE_EXAMPLE_CODE = """
 from workflows import Workflow, step
 from workflows.events import (
     Event,
@@ -33,10 +32,12 @@ class JokeFlow(Workflow):
         response = await self.llm.acomplete(prompt)
         return StopEvent(result=str(response))
 
+
 async def main(topic: str) -> None:
     w = JokeFlow(timeout=60, verbose=False)
     result = await w.run(topic=topic)
     print(str(result))
+
 
 if __name__ == "__main__":
     import asyncio
@@ -48,12 +49,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if not os.getenv("OPENAI_API_KEY", None):
-        raise ValueError("You need to set OPENAI_API_KEY in your environment before using this workflow")
+        raise ValueError(
+            "You need to set OPENAI_API_KEY in your environment before using this workflow"
+        )
 
     asyncio.run(main(topic=args.topic))
-"""
-
-BASE_EXAMPLE_REQUIREMENTS = """
-llama-index-workflows
-llama-index-llms-openai
-"""

@@ -24,7 +24,8 @@ dependencies = [
   "llama-index-llms-anthropic>=0.8.4",
   "prompt-toolkit>=3.0.51",
   "rich>=14.1.0",
-  "rich-gradient>=0.3.3"
+  "rich-gradient>=0.3.3",
+  "tomli-w>=1.2.0"
 ]
 
 [project.scripts]
