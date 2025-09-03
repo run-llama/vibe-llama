@@ -36,7 +36,7 @@ PROJECTS = {
         "dependencies": BASE_EXAMPLE_REQUIREMENTS,
         "description": "A base example that showcases usage patterns for workflows",
     },
-    "document_processing": {
+    "document_parsing": {
         "dependencies": DOCUMENT_PROCESSING_REQUIREMENTS,
         "description": "A workflow that, using LlamaParse, parses unstructured documents and returns their raw text content.",
     },
@@ -44,7 +44,7 @@ PROJECTS = {
         "dependencies": HUMAN_IN_THE_LOOP_REQUIREMENTS,
         "description": "A workflow showcasing how to use human in the loop",
     },
-    "invoice_extractor": {
+    "invoice_extraction": {
         "dependencies": INVOICE_EXTRACTOR_REQUIREMENTS,
         "description": "A workflow that, given an invoice, extracts several key details using LlamaExtract",
     },

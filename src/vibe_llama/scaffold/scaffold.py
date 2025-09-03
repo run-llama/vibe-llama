@@ -8,9 +8,9 @@ from typing import Literal, Optional
 async def create_scaffold(
     request: Literal[
         "base_example",
-        "document_processing",
+        "document_parsing",
         "human_in_the_loop",
-        "invoice_extractor",
+        "invoice_extraction",
         "rag",
         "web_scraping",
     ] = "base_example",
@@ -38,7 +38,7 @@ async def create_scaffold(
                 with open(os.path.join(actual_path, file), "w") as f:
                     f.write(templates[file])
             generate_pyproject(request, os.path.join(actual_path, "pyproject.toml"))
-            return f"[bold green]SUCCESS[/]\tYour workflow was written to: {os.path.join(actual_path, 'workflow.py')}. Find requirements at: {os.path.join(actual_path, 'requirements.txt')}"
+            return f"[bold green]SUCCESS✅[/]\nYour workflow was written to: {os.path.join(actual_path, 'workflow.py')}.\nFind project details at: {os.path.join(actual_path, 'pyproject.toml')}.\nInstall all necessary dependencies with [on gray]cd {actual_path} && pip install .[/]"
         else:
             return "[bold red]ERROR[/]\tThere was an error while trying to generate the example: Unable to fetch the templates from source. \n\tWe advise you to [bold yellow]retry[/] soon!"
 

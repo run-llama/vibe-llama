@@ -7,7 +7,7 @@ from rich.console import Console
 from .starter import starter, agent_rules, services, mcp_server
 from .docuflows import run_cli
 from .logo import print_logo
-from .scaffold import create_scaffold, PROJECTS
+from .scaffold import create_scaffold, PROJECTS, run_scaffold_interface
 
 
 def main() -> None:
@@ -85,7 +85,7 @@ def main() -> None:
         "--use_case",
         help="Use case you would like to see an example of",
         required=False,
-        default="base_example",
+        default=None,
         choices=[key for key in list(PROJECTS.keys())],
     )
 
@@ -113,7 +113,15 @@ def main() -> None:
             console.print("\n👋 Goodbye!", style="bold yellow")
     elif args.command == "scaffold":
         print_logo()
-        result = asyncio.run(create_scaffold(request=args.use_case, path=args.path))
+        if not args.use_case and not args.path:
+            template, path = asyncio.run(run_scaffold_interface())
+            result = asyncio.run(
+                create_scaffold(request=template or "base_example", path=path)
+            )  # type: ignore
+        else:
+            result = asyncio.run(
+                create_scaffold(request=args.use_case or "base_example", path=args.path)
+            )
         console.log(result)
 
     return None
