@@ -34,6 +34,8 @@ There is thus no need to pass the API key directly as an argument to any of the 
 
 Let's see some examples of how to interact with the various services.
 
+<!-- sep---sep -->
+
 ### Parse
 
 You can get started by creating simple scripts:
@@ -100,6 +102,8 @@ tables = parser.get_tables(result)
 
 See more details about the result object in the [example notebook](https://www.notion.so/llamaindex/docs/examples-py/parse/demo_json_tour.ipynb).
 
+<!-- sep---sep -->
+
 ### Using different parse pre-sets
 
 In the following examples, you will find some sets of arguments that you can pass to LlamaParse. Please, make sure to use only these pre-defined sets of arguments when initializing LlamaParse.
@@ -148,6 +152,8 @@ llama_parser = LlamaParse(
     organization_id=organization_id,
 )
 ```
+
+<!-- sep---sep -->
 
 ### Using with file object / bytes
 
@@ -208,6 +214,8 @@ documents = SimpleDirectoryReader(
 ).load_data()
 ```
 
+<!-- sep---sep -->
+
 ### Extract
 
 ### Quick Start
@@ -255,6 +263,8 @@ extract_config = ExtractConfig(
 result = extractor.extract(Resume, config, "resume.pdf")
 print(result.data)
 ```
+
+<!-- sep---sep -->
 
 ### Supported File Types
 
@@ -321,6 +331,8 @@ for job in jobs:
 # Get results when complete
 results = [agent.get_extraction_run_for_job(job.id) for job in jobs]
 ```
+
+<!-- sep---sep -->
 
 ### Core Concepts
 
@@ -412,6 +424,8 @@ be sufficient for a wide variety of use-cases.
   your extraction workflow to fit within these constraints, e.g. by extracting subset of fields
   and later merging them together.
 
+<!-- sep---sep -->
+
 ### Extraction Configuration
 
 Configure how extraction is performed using `ExtractConfig`. The schema is the most important part, but several configuration options can significantly impact the extraction process.
@@ -467,6 +481,8 @@ advanced_config = ExtractConfig(
 - `confidence_scores`: Quantitative confidence measures (MULTIMODAL/PREMIUM only)
 
 For complete configuration options, advanced settings, and detailed examples, see the [LlamaExtract Configuration Documentation](https://docs.cloud.llamaindex.ai/llamaextract/features/options).
+
+<!-- sep---sep -->
 
 ### Extraction Agents (Advanced)
 
@@ -561,6 +577,8 @@ extractor.delete_agent(agent.id)
 - Complex workflows requiring state management
 - Production systems with consistent extraction patterns
 
+<!-- sep---sep -->
+
 ### Index
 
 ### Usage
@@ -616,6 +634,8 @@ A full list of retriever settings/kwargs is below:
 - `rerank_top_n`: Optional[int] -- The number of nodes to return after reranking initial retrieval results
 - `alpha` Optional[float] -- The weighting between dense and sparse retrieval. 1 = Full dense retrieval, 0 = Full sparse retrieval.
 
+<!-- sep---sep -->
+
 # Building with LlamaCloud in TypeScript
 
 ## A compendium of examples and explanations
@@ -637,6 +657,8 @@ npm install llama-cloud-services
 ```
 
 Let's see some examples of how to interact with the various services.
+
+<!-- sep---sep -->
 
 ### Parse
 
@@ -660,6 +682,8 @@ const tables = await reader.getTables(result, "data/tables"); // this will retur
 ```
 
 > Remember to export your LLAMA_CLOUD_API_KEY as an environment variable!
+
+<!-- sep---sep -->
 
 ### Extract
 
@@ -724,6 +748,8 @@ const result = await extractClient.extract(
 
 The results will be `ExtractResult` objects, with the `data` attribute (the JSON representation of the extracted data) and the `extractionMetadata` attribute (metadata about the extraction).
 
+<!-- sep---sep -->
+
 ### Index
 
 You can interact with Index as in the following code:
@@ -778,3 +804,5 @@ export async function retrievalAugmentedGeneration(
   return text;
 }
 ```
+
+<!-- sep---sep -->

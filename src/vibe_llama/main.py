@@ -4,7 +4,7 @@ import argparse
 import asyncio
 from rich.console import Console
 
-from .starter import starter, agent_rules, services
+from .starter import starter, agent_rules, services, mcp_server
 from .docuflows import run_cli
 from .logo import print_logo
 from .scaffold import create_scaffold, PROJECTS
@@ -65,6 +65,13 @@ def main() -> None:
     )
 
     starter_parser.add_argument(
+        "-m",
+        "--mcp",
+        action="store_true",
+        help="Launch a local MCP server that allows you to retrieve relevant documentation",
+    )
+
+    starter_parser.add_argument(
         "-w",
         "--overwrite",
         action="store_true",
@@ -94,7 +101,10 @@ def main() -> None:
 
     if args.command == "starter":
         print_logo()
-        asyncio.run(starter(args.agent, args.service, args.overwrite, args.verbose))
+        if not args.mcp:
+            asyncio.run(starter(args.agent, args.service, args.overwrite, args.verbose))
+        else:
+            asyncio.run(mcp_server.run_async("streamable-http"))
     elif args.command == "docuflows":
         print_logo()
         try:
