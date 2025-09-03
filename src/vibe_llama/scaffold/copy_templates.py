@@ -21,11 +21,12 @@ async def get_template_files(
                     response = await client.get(base_url + template_name + "/" + file)
                     if response.status_code == 200:
                         contents[file] = response.text
+                        break
                     else:
                         retries += 1
                         await asyncio.sleep(retry_interval)
                 else:
-                    continue
+                    break
     if not contents[files[0]] and not contents[files[1]]:
         return None
     else:
