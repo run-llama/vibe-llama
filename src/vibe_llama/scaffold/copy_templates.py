@@ -3,7 +3,9 @@ from collections import defaultdict
 import asyncio
 from typing import Optional, Dict
 
-base_url = "https://raw.githubusercontent.com/run-llama/vibe-llama/main/templates/"
+from vibe_llama.constants import BASE_URL
+
+base_url = f"{BASE_URL}/templates/"
 files = ["workflow.py", "README.md"]
 
 

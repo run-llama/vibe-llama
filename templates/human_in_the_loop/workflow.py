@@ -1,73 +1,150 @@
+import random
+
+from pydantic import BaseModel, Field
 from workflows import Workflow, step, Context
+from workflows.resource import Resource
+from typing import Annotated
 from workflows.events import (
-    Event,
     StartEvent,
     StopEvent,
     InputRequiredEvent,
     HumanResponseEvent,
 )
 
-from llama_index.llms.openai import OpenAI
+from llama_index.llms.openai import OpenAIResponses
+from llama_index.core.llms import ChatMessage
+from llama_index.core.llms.structured_llm import StructuredLLM
 
 
-class TopicEvent(StartEvent):
-    topic: str
+# replace with an actual flight searcher
+class FlightsAPI:
+    def __init__(self) -> None:
+        self.allowed_departure = [
+            "San Francisco",
+            "San Jose",
+            "Los Angeles",
+            "New York",
+        ]
+        self.allowed_arrival = ["Paris", "London", "Berlin", "Rome"]
+        self.allowed_hours = ["7.00 AM", "12.00 AM", "5.00 PM", "10.00 PM"]
+
+    def search_flights(
+        self, departure: str, arrival: str, date: str
+    ) -> str | list[str]:
+        if arrival not in self.allowed_arrival:
+            return "Sorry, we do not have planes that go to " + arrival
+        if departure not in self.allowed_departure:
+            return "Sorry, we do not have planes departing from " + departure
+        allowed_hours = self.allowed_hours[self.allowed_departure.index(departure) :]
+        flights = []
+        for hour in allowed_hours:
+            flights.append(
+                f"Flight from {departure} to {arrival} at {hour} on {date} for {random.randint(200, 400)}$"
+            )
+        return flights
+
+    def book_flight(self, flight: str) -> str:
+        n = random.randint(0, 1)
+        if n == 0:
+            return f"Successfully booked: {flight}"
+        return "Sorry, something went wrong while booking your flight"
 
 
-class JokeEvent(Event):
-    joke: str
+class FlightSearchEvent(InputRequiredEvent):
+    candidate_flights: list[str]
 
 
-class FeedbackRequiredEvent(InputRequiredEvent):
-    joke: str
+class FlightChoiceEvent(HumanResponseEvent):
+    chosen_flight: str
+    continue_booking: bool
 
 
-class HumanFeedbackEvent(HumanResponseEvent):
-    approved: bool
+async def get_flights_api(*args, **kwargs) -> FlightsAPI:
+    return FlightsAPI()
 
 
-class HumanJokeFlow(Workflow):
-    llm = OpenAI(model="gpt-4.1")
+class FlightSearchDetails(BaseModel):
+    departure_location: str = Field(description="Departure location")
+    arrival_location: str = Field(description="Arrival location")
+    date: str = Field(description="Flight date")
 
+
+async def get_llm(*args, **kwargs) -> StructuredLLM:
+    return OpenAIResponses("gpt-4.1").as_structured_llm(FlightSearchDetails)
+
+
+class FlightSearchWorkflow(Workflow):
     @step
-    async def generate_joke(self, ev: TopicEvent, ctx: Context) -> JokeEvent:
-        topic = ev.topic
-        async with ctx.store.edit_state() as state:
-            state.topic = ev.topic
-        prompt = f"Write your best joke about {topic}."
-        response = await self.llm.acomplete(prompt)
-        return JokeEvent(joke=str(response))
-
-    @step
-    async def give_feedback_on_joke(
-        self, ev: JokeEvent, ctx: Context
-    ) -> FeedbackRequiredEvent:
-        async with ctx.store.edit_state() as state:
-            state.joke = ev.joke
-        return FeedbackRequiredEvent(joke=ev.joke)
-
-    @step
-    async def collect_human_feedback_event(
-        self, ev: HumanFeedbackEvent, ctx: Context
-    ) -> StopEvent | TopicEvent:
-        state = await ctx.store.get_state()
-        if ev.approved:
-            return StopEvent(result=state.joke)
+    async def search_for_flight(
+        self,
+        ev: StartEvent,
+        ctx: Context,
+        llm: Annotated[StructuredLLM, Resource(get_llm)],
+        flight_api: Annotated[FlightsAPI, Resource(get_flights_api)],
+    ) -> StopEvent | FlightSearchEvent:
+        response = await llm.achat(
+            [
+                ChatMessage(
+                    content=f"Extract flight details from this request: {ev.message}"
+                )
+            ]
+        )
+        if response.message.content:
+            flight_details = FlightSearchDetails.model_validate_json(
+                response.message.content
+            )
         else:
-            return TopicEvent(topic=state.topic)  # type: ignore
+            return StopEvent(result="Unable to get details for your flight")
+        flights = flight_api.search_flights(
+            departure=flight_details.departure_location,
+            arrival=flight_details.arrival_location,
+            date=flight_details.date,
+        )
+        if isinstance(flights, str):
+            return StopEvent(result=flights)
+        else:
+            return FlightSearchEvent(candidate_flights=flights)
+
+    @step
+    async def chosen_flight(
+        self,
+        ev: FlightChoiceEvent,
+        flight_api: Annotated[FlightsAPI, Resource(get_flights_api)],
+        ctx: Context,
+    ) -> StopEvent:
+        if ev.continue_booking:
+            booking = flight_api.book_flight(ev.chosen_flight)
+            return StopEvent(result=booking)
+        else:
+            return StopEvent(result="No permission to book, exiting...")
 
 
-async def main(topic: str) -> None:
-    w = HumanJokeFlow(timeout=60, verbose=False)
-    handler = w.run(start_event=TopicEvent(topic=topic))
+async def main(message: str) -> None:
+    w = FlightSearchWorkflow(timeout=100, verbose=False)
+    handler = w.run(message=message)
     async for ev in handler.stream_events():
-        if isinstance(ev, FeedbackRequiredEvent):
-            print("Joke: " + ev.joke)
-            res = input("Approve? [yes/no]: ")
-            if res.lower().strip() == "yes":
-                handler.ctx.send_event(HumanFeedbackEvent(approved=True))  # type: ignore
+        if isinstance(ev, FlightSearchEvent):
+            print("Flights:\n" + "\n- ".join(ev.candidate_flights) + "\n\n")
+            are_ok = input("Are the flights ok for you? [yes/no] ")
+            if are_ok.lower().strip() != "yes":
+                handler.ctx.send_event(
+                    FlightChoiceEvent(chosen_flight="", continue_booking=False)
+                )  # type: ignore
+                break
+            res = input("Choose a flight: ")
+            while res not in ev.candidate_flights:
+                res = input(
+                    "Sorry, that flight is not available, can you choose one flight from the above, please? Your choice: "
+                )
+            appr = input(f"Do you wish to continue with booking for {res}? [yes/no] ")
+            if appr.lower().strip() == "yes":
+                handler.ctx.send_event(
+                    FlightChoiceEvent(chosen_flight=res, continue_booking=True)
+                )  # type: ignore
             else:
-                handler.ctx.send_event(HumanFeedbackEvent(approved=False))  # type: ignore
+                handler.ctx.send_event(
+                    FlightChoiceEvent(chosen_flight=res, continue_booking=False)
+                )  # type: ignore
     result = await handler
     print(str(result))
 
@@ -78,7 +155,9 @@ if __name__ == "__main__":
     from argparse import ArgumentParser
 
     parser = ArgumentParser()
-    parser.add_argument("-t", "--topic", required=True, help="Joke Topic")
+    parser.add_argument(
+        "-m", "--message", required=True, help="Flight you would like to take"
+    )
     args = parser.parse_args()
 
     if not os.getenv("OPENAI_API_KEY", None):
@@ -86,4 +165,4 @@ if __name__ == "__main__":
             "You need to set OPENAI_API_KEY in your environment before using this workflow"
         )
 
-    asyncio.run(main(topic=args.topic))
+    asyncio.run(main(message=args.message))

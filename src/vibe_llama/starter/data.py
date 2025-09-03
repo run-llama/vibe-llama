@@ -1,3 +1,5 @@
+from vibe_llama.constants import BASE_URL
+
 agent_rules = {
     "GitHub Copilot": ".github/copilot-instructions.md",
     "Claude Code": "CLAUDE.md",
@@ -18,9 +20,8 @@ agent_rules = {
     "vibe-llama docuflows": ".vibe-llama/rules/AGENTS.md",
 }
 
-# NEED TO CHANGE THE URLs BACK BEFORE MERGING (will cause test failures)
 services = {
-    "LlamaIndex": "https://raw.githubusercontent.com/run-llama/vibe-llama/main/documentation/llamaindex.md",
-    "LlamaCloud Services": "https://raw.githubusercontent.com/run-llama/vibe-llama/main/documentation/llamacloud.md",
-    "llama-index-workflows": "https://raw.githubusercontent.com/run-llama/vibe-llama/main/documentation/llama-index-workflows.md",
+    "LlamaIndex": f"{BASE_URL}/documentation/llamaindex.md",
+    "LlamaCloud Services": f"{BASE_URL}/documentation/llamacloud.md",
+    "llama-index-workflows": f"{BASE_URL}/documentation/llama-index-workflows.md",
 }
