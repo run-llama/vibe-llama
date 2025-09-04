@@ -1,0 +1,10 @@
+[project]
+name = "base-example"
+version = "0.1.0"
+description = "A base example that showcases usage patterns for workflows"
+requires-python = ">=3.10"
+readme = "README.md"
+dependencies = [
+  "llama-index-workflows",
+  "llama-index-llms-openai"
+]

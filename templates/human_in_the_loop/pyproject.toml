@@ -1,0 +1,10 @@
+[project]
+name = "human-in-the-loop"
+version = "0.1.0"
+description = "A workflow showcasing how to use human in the loop"
+requires-python = ">=3.10"
+readme = "README.md"
+dependencies = [
+  "llama-index-workflows",
+  "llama-index-llms-openai"
+]
