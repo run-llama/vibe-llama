@@ -7,7 +7,5 @@ readme = "README.md"
 dependencies = [
   "llama-index-llms-openai",
   "llama-index-embeddings-openai",
-  "llama-index-workflows",
+  "llama-index-workflows"
 ]
-
-

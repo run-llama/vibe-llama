@@ -6,7 +6,5 @@ requires-python = ">=3.10"
 readme = "README.md"
 dependencies = [
   "llama-index-workflows",
-  "llama-cloud-services",
+  "llama-cloud-services"
 ]
-
-

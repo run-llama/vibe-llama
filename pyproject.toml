@@ -30,7 +30,7 @@ dependencies = [
   "rich>=14.1.0",
   "rich-gradient>=0.3.3",
   "tomli-w>=1.2.0",
-  "copier>=9.10.1",
+  "copier>=9.10.1"
 ]
 
 [project.scripts]
@@ -39,11 +39,11 @@ vibe-llama = "vibe_llama.main:main"
 [tool.hatch.build.targets.wheel]
 only-include = ["src/vibe_llama"]
 
-[tool.hatch.build.targets.wheel.sources]
-"src" = ""
-
 [tool.hatch.build.targets.wheel.force-include]
 "templates" = "vibe_llama/templates"
+
+[tool.hatch.build.targets.wheel.sources]
+"src" = ""
 
 [tool.mypy]
 exclude = [

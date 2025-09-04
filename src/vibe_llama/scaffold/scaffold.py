@@ -1,8 +1,7 @@
 import os
 from pathlib import Path
-from typing import Optional, Literal, get_args, cast, Tuple, Dict, Any
+from typing import Optional, Literal, get_args, cast, Tuple
 from copier import run_copy
-
 
 
 # enum-like type for project names

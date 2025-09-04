@@ -125,7 +125,9 @@ def main() -> None:
             )
         else:
             result = asyncio.run(
-                create_scaffold(request=(args.use_case or "base_example"), path=args.path)
+                create_scaffold(
+                    request=(args.use_case or "base_example"), path=args.path
+                )
             )
         console.log(result)
 
