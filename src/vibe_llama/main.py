@@ -4,10 +4,12 @@ import argparse
 import asyncio
 from rich.console import Console
 
+from vibe_llama.scaffold.scaffold import PROJECTS
+
 from .starter import starter, agent_rules, services, mcp_server
 from .docuflows import run_cli
 from .logo import print_logo
-from .scaffold import create_scaffold, PROJECTS, run_scaffold_interface
+from .scaffold import create_scaffold, run_scaffold_interface
 
 
 def main() -> None:
@@ -86,7 +88,7 @@ def main() -> None:
         help="Use case you would like to see an example of",
         required=False,
         default=None,
-        choices=[key for key in list(PROJECTS.keys())],
+        choices=[key.value for key in list(PROJECTS)],
     )
 
     scaffold_parser.add_argument(
@@ -114,16 +116,16 @@ def main() -> None:
     elif args.command == "scaffold":
         print_logo()
         if not args.use_case and not args.path:
-            template, path = asyncio.run(run_scaffold_interface())
-            if template is None and path is None:
+            template_name, path = asyncio.run(run_scaffold_interface())
+            if template_name is None and path is None:
                 console.log("[bold red]ERROR[/]\tNo use case chosen, exiting...")
                 return None
             result = asyncio.run(
-                create_scaffold(request=template or "base_example", path=path)
+                create_scaffold(request=PROJECTS(template_name or "base_example"), path=path)
             )  # type: ignore
         else:
             result = asyncio.run(
-                create_scaffold(request=args.use_case or "base_example", path=args.path)
+                create_scaffold(request=PROJECTS(args.use_case or "base_example"), path=args.path)
             )
         console.log(result)
 
