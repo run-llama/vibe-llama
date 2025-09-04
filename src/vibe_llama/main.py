@@ -4,7 +4,7 @@ import argparse
 import asyncio
 from rich.console import Console
 
-from vibe_llama.scaffold.scaffold import PROJECTS
+from vibe_llama.scaffold.scaffold import PROJECT_NAMES
 
 from .starter import starter, agent_rules, services, mcp_server
 from .docuflows import run_cli
@@ -88,7 +88,7 @@ def main() -> None:
         help="Use case you would like to see an example of",
         required=False,
         default=None,
-        choices=[key.value for key in list(PROJECTS)],
+        choices=list(PROJECT_NAMES),
     )
 
     scaffold_parser.add_argument(
@@ -121,11 +121,11 @@ def main() -> None:
                 console.log("[bold red]ERROR[/]\tNo use case chosen, exiting...")
                 return None
             result = asyncio.run(
-                create_scaffold(request=PROJECTS(template_name or "base_example"), path=path)
-            )  # type: ignore
+                create_scaffold(request=(template_name or "base_example"), path=path)
+            )
         else:
             result = asyncio.run(
-                create_scaffold(request=PROJECTS(args.use_case or "base_example"), path=args.path)
+                create_scaffold(request=(args.use_case or "base_example"), path=args.path)
             )
         console.log(result)
 

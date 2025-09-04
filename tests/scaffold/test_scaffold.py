@@ -10,12 +10,12 @@ from prompt_toolkit.application import Application
 
 def test_template_pyprojects_sync_with_catalog() -> None:
     """Ensure static template pyprojects match the PROJECTS catalog."""
-    templates_root = Path(__file__).resolve().parents[3] / "templates"
+    templates_root = Path(__file__).resolve().parents[2] / "templates"
     for name, cfg in PROJECTS.items():
         p = templates_root / name / "pyproject.toml"
         assert p.is_file(), f"Missing pyproject for template {name}"
         data = toml.loads(p.read_text())
-        assert data["project"]["name"] == name
+        assert data["project"]["name"] == name.replace("_", "-")
         assert data["project"]["version"] == "0.1.0"
         assert data["project"]["description"] == cfg["description"]
         assert data["project"]["readme"] == "README.md"
