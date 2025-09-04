@@ -35,8 +35,16 @@ async def create_scaffold(
         os.makedirs(actual_path, exist_ok=True)
 
         # Copy the selected template directory into destination using Copier
-        template_src = str(Path(__file__).resolve().parents[3] / "templates" / request)
-        run_copy(template_src, actual_path)
+        try:
+            template_src = str(
+                Path(__file__).resolve().parents[1] / "templates" / request
+            )
+            run_copy(template_src, actual_path)
+        except Exception:
+            template_src = str(
+                Path(__file__).resolve().parents[3] / "templates" / request
+            )
+            run_copy(template_src, actual_path)
 
         return f"[bold green]SUCCESS✅[/]\nYour workflow was written to: {os.path.join(actual_path, 'workflow.py')}.\nFind project details at: {os.path.join(actual_path, 'pyproject.toml')}.\nInstall all necessary dependencies with [on gray]cd {actual_path} && pip install .[/]"
 
