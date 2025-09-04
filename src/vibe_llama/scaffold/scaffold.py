@@ -15,55 +15,8 @@ ProjectName = Literal[
     "web_scraping",
 ]
 
-# Catalog with descriptions and dependencies (kept in sync with templates/*/pyproject.toml)
-PROJECTS: Dict[ProjectName, Dict[str, Any]] = {
-    "base_example": {
-        "description": "A base example that showcases usage patterns for workflows",
-        "dependencies": [
-            "llama-index-workflows",
-            "llama-index-llms-openai",
-        ],
-    },
-    "document_parsing": {
-        "description": "A workflow that, using LlamaParse, parses unstructured documents and returns their raw text content.",
-        "dependencies": [
-            "llama-index-workflows",
-            "llama-cloud-services",
-        ],
-    },
-    "human_in_the_loop": {
-        "description": "A workflow showcasing how to use human in the loop",
-        "dependencies": [
-            "llama-index-workflows",
-            "llama-index-llms-openai",
-        ],
-    },
-    "invoice_extraction": {
-        "description": "A workflow that, given an invoice, extracts several key details using LlamaExtract",
-        "dependencies": [
-            "llama-index-workflows",
-            "llama-cloud-services",
-        ],
-    },
-    "rag": {
-        "description": "A workflow that embeds, indexes and queries your documents on the fly, providing you with a simple RAG pipeline.",
-        "dependencies": [
-            "llama-index-llms-openai",
-            "llama-index-embeddings-openai",
-            "llama-index-workflows",
-        ],
-    },
-    "web_scraping": {
-        "description": "A workflow that, given several urls, scrapes and summarizes their content.",
-        "dependencies": [
-            "llama-index-workflows",
-            "llama-index-llms-google-genai",
-        ],
-    },
-}
-
 # Expose a typed tuple of just the allowed names for convenience/choices
-PROJECT_NAMES: Tuple[ProjectName, ...] = cast(Tuple[ProjectName, ...], get_args(ProjectName))
+PROJECTS: Tuple[ProjectName, ...] = cast(Tuple[ProjectName, ...], get_args(ProjectName))
 
 
 async def create_scaffold(

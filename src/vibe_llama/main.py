@@ -4,7 +4,7 @@ import argparse
 import asyncio
 from rich.console import Console
 
-from vibe_llama.scaffold.scaffold import PROJECT_NAMES
+from vibe_llama.scaffold.scaffold import PROJECTS
 
 from .starter import starter, agent_rules, services, mcp_server
 from .docuflows import run_cli
@@ -88,7 +88,7 @@ def main() -> None:
         help="Use case you would like to see an example of",
         required=False,
         default=None,
-        choices=list(PROJECT_NAMES),
+        choices=list(PROJECTS),
     )
 
     scaffold_parser.add_argument(

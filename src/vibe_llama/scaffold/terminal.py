@@ -3,7 +3,7 @@ from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.styles import Style
 from typing import Optional, Tuple
 
-from vibe_llama.scaffold.scaffold import PROJECT_NAMES
+from vibe_llama.scaffold.scaffold import PROJECTS
 
 
 style = Style.from_dict(
@@ -18,7 +18,7 @@ style = Style.from_dict(
 app1 = radiolist_dialog(
     title=HTML("<style fg='black'>Use Case</style>"),
     text="Which use case would you like to download an example of?",
-    values=[(key, " ".join(key.split("_")).capitalize()) for key in list(PROJECT_NAMES)],
+    values=[(key, " ".join(key.split("_")).capitalize()) for key in list(PROJECTS)],
     style=style,
 )
 
