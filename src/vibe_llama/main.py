@@ -4,9 +4,12 @@ import argparse
 import asyncio
 from rich.console import Console
 
+from vibe_llama.scaffold.scaffold import PROJECTS
+
 from .starter import starter, agent_rules, services, mcp_server
 from .docuflows import run_cli
 from .logo import print_logo
+from .scaffold import create_scaffold, run_scaffold_interface
 
 
 def main() -> None:
@@ -24,6 +27,11 @@ def main() -> None:
     starter_parser = subparsers.add_parser(
         "starter",
         help="starter provides your coding agents with up-to-date documentation about LlamIndex, LlamaCloud Services and llama-index-workflows, so that they can build reliable and working applications! You can launch a terminal user interface by running `vibe-llama starter` or you can directly pass your agent (-a, --agent flag) and chosen service (-s, --service flag). If you already have local files and you wish them to be overwritten by the new file you are about to download with starter, use the -w, --overwrite flag.",
+    )
+
+    scaffold_parser = subparsers.add_parser(
+        "scaffold",
+        help="scaffold is a command that allows you to generate working examples of AI-powered workflows for a variety of use cases. Use the -u/--use-case flag to select the use case and -p/--path flag to define the path where the example workflow will be stored (defaults to '.vibe-llama/scaffold')",
     )
 
     _ = subparsers.add_parser(
@@ -74,6 +82,23 @@ def main() -> None:
         default=False,
     )
 
+    scaffold_parser.add_argument(
+        "-u",
+        "--use_case",
+        help="Use case you would like to see an example of",
+        required=False,
+        default=None,
+        choices=list(PROJECTS),
+    )
+
+    scaffold_parser.add_argument(
+        "-p",
+        "--path",
+        help="Path where to save the workflow code",
+        required=False,
+        default=None,
+    )
+
     args = parser.parse_args()
 
     if args.command == "starter":
@@ -88,5 +113,22 @@ def main() -> None:
             asyncio.run(run_cli())
         except KeyboardInterrupt:
             console.print("\n👋 Goodbye!", style="bold yellow")
+    elif args.command == "scaffold":
+        print_logo()
+        if not args.use_case and not args.path:
+            template_name, path = asyncio.run(run_scaffold_interface())
+            if template_name is None and path is None:
+                console.log("[bold red]ERROR[/]\tNo use case chosen, exiting...")
+                return None
+            result = asyncio.run(
+                create_scaffold(request=(template_name or "base_example"), path=path)
+            )
+        else:
+            result = asyncio.run(
+                create_scaffold(
+                    request=(args.use_case or "base_example"), path=args.path
+                )
+            )
+        console.log(result)
 
     return None

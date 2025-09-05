@@ -124,6 +124,27 @@ During the editing or generation process, you will be asked to provide reference
 
 Once the workflow generation/editing is finished, you will be able to save the code and the code-related explanation in a folder that will be created under `generated_workflows/`. In the folder you will find a `workflow.py` file, containing the code, and a `runbook.md` file, containing instructions and explanations related to the code.
 
+### scaffold
+
+`scaffold` is a command that allows you to generate working examples of AI-powered workflows for a variety of use cases.
+
+You can use it from command line, and you can pass the `-u`/`--use_case` flag to select the use case and `-p`/`--path` flag to define the path where the example workflow will be stored (defaults to `.vibe-llama/scaffold`).
+
+Alternatively, you can launch a terminal user interface by running `vibe-llama scaffold`.
+
+Once you chose the use case to download and the path to save the code to, `scaffold` will populate the specified path with a `workflow.py` (containing the actual workflow code), a `README.md` (with explanation on how to set up and run the workflow, as well as on the workflow structure) and a `pyproject.toml` with all the project details.
+
+**Example usage**
+
+```bash
+vibe-llama scaffold --use_case document_parsing --path examples/document_parsing_workflow/ # save the document parsing use case to examples/document_parsing_workflow/
+vibe-llama scaffold # launch the terminal interface
+```
+
+> [!NOTE]
+>
+> _You can find all the examples in the [`templates` folder](./templates/)_
+
 ## SDK
 
 vibe-llama also comes with a programmatic interface that you can call within your python scripts.
@@ -186,10 +207,31 @@ This class implements a retriever for vibe-llama documentation, leveraging BM25 
 You can use it as follows:
 
 ```python
+from vibe_llama.sdk import VibeLlamaDocsRetriever
+
 retriever = VibeLlamaDocsRetriever()
 
 # retrieve a maximum of 10 relevant documents pertaining to the query 'What is LlamaExtract?'
 await retriever.retrieve(query="What is LlamaExtract?", top_k=10)
+```
+
+### `VibeLlamaScaffold`
+
+VibeLlamaScaffold allows you to download human-curated, end-to-end workflows templates for various use cases.
+
+You can use it as follows:
+
+```python
+from vibe_llama.sdk import VibeLlamaScaffold
+
+scaffolder = VibeLlamaScaffold(
+    colored_output=True
+)  # you can enable/disable colored output
+
+await scaffolder.get_template(
+    template_name="invoice_extraction",
+    save_path="examples/invoice_extraction/",
+)  # if you do not provide a `save_path`, it will default to `.vibe-llama/scaffold`
 ```
 
 ## Contributing

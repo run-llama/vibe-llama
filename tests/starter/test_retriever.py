@@ -3,7 +3,7 @@ import Stemmer
 
 from vibe_llama.starter.utils import get_text_chunks, Retriever, get_instructions
 from vibe_llama.starter import services
-from vibe_llama.starter.constants import CHUNKS_SEPARATOR
+from vibe_llama.constants import CHUNKS_SEPARATOR
 
 
 @pytest.mark.asyncio

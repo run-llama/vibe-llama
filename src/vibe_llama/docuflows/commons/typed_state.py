@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List, Any, Dict
 
 
@@ -72,8 +72,4 @@ class WorkflowState(BaseModel):
         default=None, description="Path for workflow analysis cache"
     )
 
-    class Config:
-        # Allow arbitrary types for flexibility with different object types
-        arbitrary_types_allowed = True
-        # Use enum values for serialization
-        use_enum_values = True
+    model_config = ConfigDict(arbitrary_types_allowed=True, use_enum_values=True)

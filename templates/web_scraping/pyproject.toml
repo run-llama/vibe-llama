@@ -1,0 +1,10 @@
+[project]
+name = "web-scraping"
+version = "0.1.0"
+description = "A workflow that, given several urls, scrapes and summarizes their content."
+requires-python = ">=3.10"
+readme = "README.md"
+dependencies = [
+  "llama-index-workflows",
+  "llama-index-llms-google-genai"
+]

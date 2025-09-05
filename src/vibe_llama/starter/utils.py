@@ -8,7 +8,7 @@ from pathlib import Path
 from bm25s.tokenization import Tokenized
 from typing import Optional, List, Union
 from .data import services
-from .constants import CHUNKS_SEPARATOR
+from vibe_llama.constants import CHUNKS_SEPARATOR
 
 
 def write_file(

@@ -1,0 +1,11 @@
+[project]
+name = "rag"
+version = "0.1.0"
+description = "A workflow that embeds, indexes and queries your documents on the fly, providing you with a simple RAG pipeline."
+requires-python = ">=3.10"
+readme = "README.md"
+dependencies = [
+  "llama-index-llms-openai",
+  "llama-index-embeddings-openai",
+  "llama-index-workflows"
+]

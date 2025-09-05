@@ -1,0 +1,10 @@
+[project]
+name = "document-parsing"
+version = "0.1.0"
+description = "A workflow that, using LlamaParse, parses unstructured documents and returns their raw text content."
+requires-python = ">=3.10"
+readme = "README.md"
+dependencies = [
+  "llama-index-workflows",
+  "llama-cloud-services"
+]

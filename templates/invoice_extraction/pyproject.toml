@@ -1,0 +1,10 @@
+[project]
+name = "invoice-extraction"
+version = "0.1.0"
+description = "A workflow that, given an invoice, extracts several key details using LlamaExtract"
+requires-python = ">=3.10"
+readme = "README.md"
+dependencies = [
+  "llama-index-workflows",
+  "llama-cloud-services"
+]

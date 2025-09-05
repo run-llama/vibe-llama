@@ -7,12 +7,13 @@ dev = [
   "mypy>=1.17.1",
   "pre-commit>=4.3.0",
   "pytest>=8.4.1",
-  "pytest-asyncio>=1.1.0"
+  "pytest-asyncio>=1.1.0",
+  "toml>=0.10.2"
 ]
 
 [project]
 name = "vibe-llama"
-version = "0.4.0"
+version = "0.4.1"
 description = "vibe-llama is a set of tools that are designed to help developers build working and reliable applications with LlamaIndex, LlamaCloud Services and llama-index-workflows."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -27,7 +28,9 @@ dependencies = [
   "prompt-toolkit>=3.0.51",
   "pystemmer>=3.0.0",
   "rich>=14.1.0",
-  "rich-gradient>=0.3.3"
+  "rich-gradient>=0.3.3",
+  "tomli-w>=1.2.0",
+  "copier>=9.10.1"
 ]
 
 [project.scripts]
@@ -35,6 +38,9 @@ vibe-llama = "vibe_llama.main:main"
 
 [tool.hatch.build.targets.wheel]
 only-include = ["src/vibe_llama"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"templates" = "vibe_llama/templates"
 
 [tool.hatch.build.targets.wheel.sources]
 "src" = ""
