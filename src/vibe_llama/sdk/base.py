@@ -1,8 +1,11 @@
 import warnings
-from typing import Literal, List
+from typing import Literal, List, Optional
+from rich.console import Console
 
 from vibe_llama.starter.utils import write_file, get_instructions
 from vibe_llama.starter.data import agent_rules, services as service_to_url
+from vibe_llama.scaffold import create_scaffold
+from vibe_llama.scaffold.scaffold import ProjectName
 from .utils import print_verbose
 from .errors import (
     FailedToWriteFilesError,
@@ -96,3 +99,37 @@ class VibeLlamaStarter:
             "All the files have been successfully written, happy vibe-hacking!", verbose
         )
         return None
+
+
+class VibeLlamaScaffold:
+    """
+    VibeLlamaScaffold allows you to download human-curated, end-to-end workflows templates for various use cases.
+
+    Attributes:
+        colored_output (bool): Print the output of the scaffold operation with color
+    """
+
+    def __init__(self, colored_output: bool = True) -> None:
+        self.colored_output = colored_output
+        self._console = Console()
+
+    async def get_template(
+        self,
+        template_name: ProjectName = "base_example",
+        save_path: Optional[str] = None,
+    ) -> None:
+        """
+        Download a template.
+
+        Args:
+            template_name (ProjectName): Name of the template. You can find all the available templates [here](https://github.com/run-llama/vibe-llama/blob/main/templates/). Defaults to `base_example` if not provided
+            save_path (Optional[str]): Path where to save the downloaded template. Defaults to `.vibe-llama/scaffold` if not provided
+        """
+        result = await create_scaffold(template_name, save_path)
+        if self.colored_output:
+            self._console.log(result)
+        else:
+            result.replace("[bold red]", "").replace("[bold green]", "").replace(
+                "[/]", ""
+            )
+            print(result)

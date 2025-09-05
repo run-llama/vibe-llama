@@ -207,10 +207,31 @@ This class implements a retriever for vibe-llama documentation, leveraging BM25 
 You can use it as follows:
 
 ```python
+from vibe_llama.sdk import VibeLlamaDocsRetriever
+
 retriever = VibeLlamaDocsRetriever()
 
 # retrieve a maximum of 10 relevant documents pertaining to the query 'What is LlamaExtract?'
 await retriever.retrieve(query="What is LlamaExtract?", top_k=10)
+```
+
+### `VibeLlamaScaffold`
+
+VibeLlamaScaffold allows you to download human-curated, end-to-end workflows templates for various use cases.
+
+You can use it as follows:
+
+```python
+from vibe_llama.sdk import VibeLlamaScaffold
+
+scaffolder = VibeLlamaScaffold(
+    colored_output=True
+)  # you can enable/disable colored output
+
+await scaffolder.get_template(
+    template_name="invoice_extraction",
+    save_path="examples/invoice_extraction/",
+)  # if you do not provide a `save_path`, it will default to `.vibe-llama/scaffold`
 ```
 
 ## Contributing
