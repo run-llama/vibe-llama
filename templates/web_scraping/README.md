@@ -15,7 +15,7 @@ pip install -e .
 Run the workflow from the command line:
 
 ```bash
-python workflow.py \
+python -m web_scraping.workflow \
   --url https://example.com/page1 \
   --url https://example.com/page2
 ```

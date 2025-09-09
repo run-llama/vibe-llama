@@ -121,13 +121,11 @@ def main() -> None:
                 console.log("[bold red]ERROR[/]\tNo use case chosen, exiting...")
                 return None
             result = asyncio.run(
-                create_scaffold(request=(template_name or "base_example"), path=path)
+                create_scaffold(request=(template_name or "basic"), path=path)
             )
         else:
             result = asyncio.run(
-                create_scaffold(
-                    request=(args.use_case or "base_example"), path=args.path
-                )
+                create_scaffold(request=(args.use_case or "basic"), path=args.path)
             )
         console.log(result)
 

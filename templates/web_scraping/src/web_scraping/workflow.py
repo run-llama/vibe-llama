@@ -77,6 +77,9 @@ class WebScrapeWorkflow(Workflow):
             return StopEvent(result=state.final_content)
 
 
+workflow = WebScrapeWorkflow(timeout=None)
+
+
 async def main(urls: list[str]):
     w = WebScrapeWorkflow(timeout=300)
     result = await w.run(urls=urls)

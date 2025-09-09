@@ -121,6 +121,8 @@ async def main(path: str, extraction_mode: str) -> None:
     print(str(result))
 
 
+workflow = InvoiceExtractWorkflow(timeout=None)
+
 if __name__ == "__main__":
     import asyncio
     import os

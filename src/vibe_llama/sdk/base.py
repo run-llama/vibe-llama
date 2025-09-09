@@ -115,14 +115,14 @@ class VibeLlamaScaffold:
 
     async def get_template(
         self,
-        template_name: ProjectName = "base_example",
+        template_name: ProjectName = "basic",
         save_path: Optional[str] = None,
     ) -> None:
         """
         Download a template.
 
         Args:
-            template_name (ProjectName): Name of the template. You can find all the available templates [here](https://github.com/run-llama/vibe-llama/blob/main/templates/). Defaults to `base_example` if not provided
+            template_name (ProjectName): Name of the template. You can find all the available templates [here](https://github.com/run-llama/vibe-llama/blob/main/templates/). Defaults to `basic` if not provided
             save_path (Optional[str]): Path where to save the downloaded template. Defaults to `.vibe-llama/scaffold` if not provided
         """
         result = await create_scaffold(template_name, save_path)

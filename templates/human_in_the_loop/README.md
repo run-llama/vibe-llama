@@ -15,7 +15,7 @@ pip install -e .
 Run the workflow from the command line:
 
 ```bash
-python workflow.py \
+python -m human_in_the_loop.workflow \
   --message "I want to fly from San Francisco to Paris on July 10th"
 ```
 

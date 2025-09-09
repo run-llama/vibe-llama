@@ -15,7 +15,7 @@ pip install -e .
 Run the workflow from the command line:
 
 ```bash
-python workflow.py \
+python -m document_parsing.workflow \
   --path /path/to/document.pdf \
   --mode agentic
 ```

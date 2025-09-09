@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "invoice-extraction"
 version = "0.1.0"
@@ -8,3 +12,6 @@ dependencies = [
   "llama-index-workflows",
   "llama-cloud-services"
 ]
+
+[tool.llamadeploy.workflows]
+default = "invoice_extraction.workflow:workflow"

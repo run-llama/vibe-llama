@@ -15,7 +15,7 @@ pip install -e .
 Run the workflow from the command line:
 
 ```bash
-python workflow.py \
+python -m rag.workflow \
   --path /path/to/documents/ \
   --query "What are the main findings in these reports?"
 ```

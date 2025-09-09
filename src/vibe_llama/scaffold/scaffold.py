@@ -6,7 +6,7 @@ from copier import run_copy
 
 # enum-like type for project names
 ProjectName = Literal[
-    "base_example",
+    "basic",
     "document_parsing",
     "human_in_the_loop",
     "invoice_extraction",
@@ -19,7 +19,7 @@ PROJECTS: Tuple[ProjectName, ...] = cast(Tuple[ProjectName, ...], get_args(Proje
 
 
 async def create_scaffold(
-    request: ProjectName = "base_example",
+    request: ProjectName = "basic",
     path: Optional[str] = None,
 ) -> str:
     try:
@@ -44,7 +44,7 @@ async def create_scaffold(
             template_src = str(
                 Path(__file__).resolve().parents[3] / "templates" / request
             )
-            run_copy(template_src, actual_path)
+            run_copy(template_src, actual_path, exclude=[".venv", "uv.lock"])
 
         return f"[bold green]SUCCESS✅[/]\nYour workflow was written to: {os.path.join(actual_path, 'workflow.py')}.\nFind project details at: {os.path.join(actual_path, 'pyproject.toml')}.\nInstall all necessary dependencies with [on gray]cd {actual_path} && pip install .[/]"
 

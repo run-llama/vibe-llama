@@ -149,6 +149,9 @@ async def main(message: str) -> None:
     print(str(result))
 
 
+workflow = FlightSearchWorkflow(timeout=None)
+
+
 if __name__ == "__main__":
     import asyncio
     import os
