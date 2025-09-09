@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "rag"
 version = "0.1.0"
@@ -9,3 +13,9 @@ dependencies = [
   "llama-index-embeddings-openai",
   "llama-index-workflows"
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rag"]
+
+[tool.llamadeploy.workflows]
+default = "rag.workflow:workflow"

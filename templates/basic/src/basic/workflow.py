@@ -131,6 +131,8 @@ async def main(sender: str, receivers: list[str], subject: str, draft: str) -> N
     print(str(result))
 
 
+workflow = EmailFlow(timeout=None)
+
 if __name__ == "__main__":
     import asyncio
     import os

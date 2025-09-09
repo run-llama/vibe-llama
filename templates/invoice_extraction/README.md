@@ -15,7 +15,7 @@ pip install -e .
 Run the workflow from the command line:
 
 ```bash
-python workflow.py \
+python -m invoice_extraction.workflow \
   --path /path/to/invoice.pdf \
   --mode advanced
 ```

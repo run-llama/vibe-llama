@@ -15,7 +15,7 @@ pip install -e .
 Run the workflow from the command line:
 
 ```bash
-python workflow.py \
+python -m basic.workflow \
   --sender you@mycompany.com \
   --receiver recipient1@mycompany.com \
   --receiver recipient2@mycompany.com \

@@ -6,7 +6,7 @@ from copier import run_copy
 
 # enum-like type for project names
 ProjectName = Literal[
-    "base_example",
+    "basic",
     "document_parsing",
     "human_in_the_loop",
     "invoice_extraction",
@@ -19,7 +19,7 @@ PROJECTS: Tuple[ProjectName, ...] = cast(Tuple[ProjectName, ...], get_args(Proje
 
 
 async def create_scaffold(
-    request: ProjectName = "base_example",
+    request: ProjectName = "basic",
     path: Optional[str] = None,
 ) -> str:
     try:

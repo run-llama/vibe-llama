@@ -68,12 +68,7 @@ class DocumentProcessingWorkflow(Workflow):
     ):
         async with ctx.store.edit_state() as state:
             state.document_path = ev.document_path
-        if ev.parsing_mode == "cost_effective":
-            return ParseDocumentCostEffectiveEvent()
-        elif ev.parsing_mode == "agentic":
-            return ParseDocumentAgenticEvent()
-        else:
-            return ParseDocumentAgenticPlusEvent()
+        return ParseDocumentCostEffectiveEvent()
 
     @step
     async def parse_document_cost_effective(
@@ -96,7 +91,7 @@ class DocumentProcessingWorkflow(Workflow):
     @step
     async def parse_document_agentic(
         self,
-        ev: ParseDocumentCostEffectiveEvent,
+        ev: ParseDocumentAgenticEvent,
         ctx: Context[DocumentProcessingState],
         parser: Annotated[LlamaParse, Resource(get_llama_parse_agentic)],
     ) -> StopEvent:
@@ -114,7 +109,7 @@ class DocumentProcessingWorkflow(Workflow):
     @step
     async def parse_document_agentic_plus(
         self,
-        ev: ParseDocumentCostEffectiveEvent,
+        ev: ParseDocumentAgenticPlusEvent,
         ctx: Context[DocumentProcessingState],
         parser: Annotated[LlamaParse, Resource(get_llama_parse_agentic_plus)],
     ) -> StopEvent:
@@ -137,6 +132,8 @@ async def main(document_path: str, parsing_mode: str) -> None:
     result = await wf.run(document_path=document_path, parsing_mode=parsing_mode)
     print(str(result))
 
+
+workflow = DocumentProcessingWorkflow(timeout=None)
 
 if __name__ == "__main__":
     import os

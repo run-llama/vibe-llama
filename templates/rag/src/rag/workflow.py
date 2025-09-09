@@ -59,6 +59,9 @@ class RAGWorkflow(Workflow):
         return StopEvent(result=response.text)
 
 
+workflow = RAGWorkflow(timeout=None)
+
+
 async def main(path: str, query: str):
     w = RAGWorkflow(timeout=300)
     result = await w.run(path=path, query=query)
