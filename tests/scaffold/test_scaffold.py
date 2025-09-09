@@ -1,7 +1,9 @@
 from pathlib import Path
 import pytest
+import subprocess
 import toml
 import os
+
 
 from src.vibe_llama.scaffold import PROJECTS, create_scaffold
 from src.vibe_llama.scaffold.terminal import app1, app2
@@ -20,6 +22,30 @@ def test_template_pyprojects_sync_with_catalog() -> None:
         assert data["project"]["description"] is not None
         assert data["project"]["readme"] == "README.md"
         assert data["project"]["dependencies"] is not None
+        # Test that the workflow can be imported and validated
+
+        # Change to the template directory to run the validation
+        template_dir = templates_root / name
+        module_name = name.replace("-", "_")
+
+        # Run validation in a subprocess
+        result = subprocess.run(
+            [
+                "uv",
+                "run",
+                "python",
+                "-c",
+                f"from {module_name}.workflow import workflow; workflow._validate()",
+            ],
+            cwd=template_dir,
+            capture_output=False,
+            check=True,
+            text=True,
+        )
+
+        assert result.returncode == 0, (
+            f"Workflow validation failed for {name}: {result.stderr}"
+        )
 
 
 @pytest.mark.asyncio

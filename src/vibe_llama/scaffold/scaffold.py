@@ -44,7 +44,7 @@ async def create_scaffold(
             template_src = str(
                 Path(__file__).resolve().parents[3] / "templates" / request
             )
-            run_copy(template_src, actual_path)
+            run_copy(template_src, actual_path, exclude=[".venv", "uv.lock"])
 
         return f"[bold green]SUCCESS✅[/]\nYour workflow was written to: {os.path.join(actual_path, 'workflow.py')}.\nFind project details at: {os.path.join(actual_path, 'pyproject.toml')}.\nInstall all necessary dependencies with [on gray]cd {actual_path} && pip install .[/]"
 
