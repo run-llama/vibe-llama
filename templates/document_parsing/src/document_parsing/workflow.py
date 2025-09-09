@@ -68,7 +68,12 @@ class DocumentProcessingWorkflow(Workflow):
     ):
         async with ctx.store.edit_state() as state:
             state.document_path = ev.document_path
-        return ParseDocumentCostEffectiveEvent()
+        if ev.parsing_mode == "cost_effective":
+            return ParseDocumentCostEffectiveEvent()
+        elif ev.parsing_mode == "agentic":
+            return ParseDocumentAgenticEvent()
+        else:
+            return ParseDocumentAgenticPlusEvent()
 
     @step
     async def parse_document_cost_effective(
