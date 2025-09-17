@@ -141,5 +141,15 @@ def main() -> None:
                 create_scaffold(request=(args.use_case or "basic"), path=args.path)
             )
         console.log(result)
+        start_docuflows = console.input(
+            "Would you like to start the [bold]DocuFlows Agent[/] right away to edit the workflow scaffold you just downloaded? [yes/no]"
+        )
+        if start_docuflows.strip().lower() == "yes":
+            try:
+                asyncio.run(run_cli())
+            except KeyboardInterrupt:
+                console.print("\n👋 Goodbye!", style="bold yellow")
+            else:
+                console.print("\nOk, happy vibe-hacking!👋", style="bold yellow")
 
     return None

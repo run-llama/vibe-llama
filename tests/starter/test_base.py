@@ -20,7 +20,7 @@ async def test_starter() -> None:
     assert Path(".github/copilot-instructions.md").is_file()
     os.remove(".github/copilot-instructions.md")
     r = await starter(agent="GitHub Copilot")  # type: ignore
-    assert r is None
+    assert not r
     with pytest.raises(KeyError):
         await starter(agent="GitHub Copilo", service="LlamaIndex")
     with pytest.raises(KeyError):
