@@ -153,16 +153,16 @@ Available commands:
 1. Project ID: {config.project_id or "[Not Set]"}
 2. Organization ID: {config.organization_id or "[Not Set]"}
 3. Output Directory: {config.output_directory}
-4. Default Reference Files Path: {config.default_reference_files_path or 'Not set'}
+4. Default Reference Files Path: {config.default_reference_files_path or "Not set"}
 
 **Current model:**
 
 {config.current_model.capitalize()}
 
 **API Keys:**
-• OpenAI API Key: {"[Set]" if (config.openai_api_key or os.getenv('OPENAI_API_KEY')) else "[Not Set]"}
-• Anthropic API Key: {"[Set]" if (config.anthropic_api_key or os.getenv('ANTHROPIC_API_KEY')) else "[Not Set]"}
-• LlamaCloud API Key: {"[Set]" if (config.llama_cloud_api_key or os.getenv('LLAMA_CLOUD_API_KEY')) else "[Not Set]"}
+• OpenAI API Key: {"[Set]" if (config.openai_api_key or os.getenv("OPENAI_API_KEY")) else "[Not Set]"}
+• Anthropic API Key: {"[Set]" if (config.anthropic_api_key or os.getenv("ANTHROPIC_API_KEY")) else "[Not Set]"}
+• LlamaCloud API Key: {"[Set]" if (config.llama_cloud_api_key or os.getenv("LLAMA_CLOUD_API_KEY")) else "[Not Set]"}
 
 **Commands:**
 • Type a number (1-4) to edit that field

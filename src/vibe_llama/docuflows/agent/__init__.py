@@ -393,7 +393,7 @@ What kind of document processing workflow would you like to create?"""
                 )
             # Return to config menu
             return await handle_slash_command(ctx, "/config")
-    
+
         elif tag == "config_edit_reference_files_path":
             if user_input:
                 config.default_reference_files_path = user_input
