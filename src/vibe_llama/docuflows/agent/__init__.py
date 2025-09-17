@@ -75,7 +75,7 @@ console = Console()
 
 
 class LlamaVibeWorkflow(Workflow):
-    """Main LlamaVibe workflow with function calling"""
+    """Main vibe-llama docuflows workflow with function calling"""
 
     def __init__(self, llm: Optional[LLM] = None, verbose: bool = False, **kwargs):
         super().__init__(**kwargs)
@@ -119,7 +119,7 @@ class LlamaVibeWorkflow(Workflow):
             ctx.write_event_to_stream(
                 StreamEvent(  # type: ignore
                     rich_content=CLIFormatter.indented_text(
-                        "Welcome to LlamaVibe! Let's set up your configuration.\n"
+                        "Welcome to vibe-llama docuflows! Let's set up your configuration.\n"
                         "Please provide your LlamaCloud project ID:"
                     ),
                     newline_after=True,
@@ -311,6 +311,12 @@ What kind of document processing workflow would you like to create?"""
                 tag="config_edit_output_dir",  # type: ignore
             )
 
+        elif user_input == "4":
+            return InputRequiredEvent(
+                prefix=f"Current Default Reference Files Path: {config.default_reference_files_path}\nEnter new Reference Files Path: ",  # type: ignore
+                tag="config_edit_reference_files_path",  # type: ignore
+            )
+
         else:
             ctx.write_event_to_stream(
                 StreamEvent(  # type: ignore
@@ -383,6 +389,20 @@ What kind of document processing workflow would you like to create?"""
                 ctx.write_event_to_stream(
                     StreamEvent(  # type: ignore
                         delta="✅ Output directory updated!\n"
+                    )
+                )
+            # Return to config menu
+            return await handle_slash_command(ctx, "/config")
+    
+        elif tag == "config_edit_reference_files_path":
+            if user_input:
+                config.default_reference_files_path = user_input
+                config.save_to_file()
+                async with ctx.store.edit_state() as state:
+                    state.config = config
+                ctx.write_event_to_stream(
+                    StreamEvent(  # type: ignore
+                        delta="✅ Reference files path updated!\n"
                     )
                 )
             # Return to config menu

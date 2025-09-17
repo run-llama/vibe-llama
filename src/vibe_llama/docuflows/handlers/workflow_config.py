@@ -8,6 +8,7 @@ from vibe_llama.docuflows.agent.utils import (
 from vibe_llama.docuflows.commons import (
     StreamEvent,
     validate_uuid,
+    validate_reference_path
 )
 from vibe_llama.docuflows.commons.typed_state import WorkflowState
 
@@ -53,6 +54,23 @@ async def handle_configuration(
             return InputRequiredEvent(prefix="Please provide your organization ID: ")  # type: ignore
 
         config.organization_id = user_input
+        return InputRequiredEvent(prefix="Awesome! Now please provide the default path where the agent should look for reference files: ")  # type: ignore
+    
+    if config.project_id is not None and config.organization_id is not None and not config.default_reference_files_path:
+        is_valid, error_msg, suggestions = validate_reference_path(user_input)
+        if not is_valid:
+            ctx.write_event_to_stream(
+                StreamEvent(  # type: ignore
+                    delta=f"❌ Invalid default reference files path:\n{error_msg}\n",
+                    newline_after=True
+                )
+            )
+            ctx.write_event_to_stream(
+                StreamEvent(delta=f"\n{suggestions}\n")  # type: ignore
+            )
+            return InputRequiredEvent(prefix="Please provide a valid reference files path: ")  # type: ignore
+        
+        config.default_reference_files_path = user_input
         config.save_to_file()
         async with ctx.store.edit_state() as state:
             state.config = config

@@ -114,7 +114,7 @@ Available commands:
 • `/config` - Configure your LlamaCloud credentials and settings
 • `/model` - Configure OpenAI model (currently: {current_model})
 • `help` - Show general workflow help
-• `quit`, `exit`, `bye` - Exit LlamaVibe
+• `quit`, `exit`, `bye` - Exit vibe-llama docuflows
 
 **Regular Commands:**
 • "Generate a workflow" - Create new workflows from natural language
@@ -153,16 +153,22 @@ Available commands:
 1. Project ID: {config.project_id or "[Not Set]"}
 2. Organization ID: {config.organization_id or "[Not Set]"}
 3. Output Directory: {config.output_directory}
+4. Default Reference Files Path: {config.default_reference_files_path or 'Not set'}
+
+**Current model:**
+
+{config.current_model.capitalize()}
 
 **API Keys:**
-• OpenAI API Key: {"[Set]" if config.openai_api_key else "[Not Set]"}
-• Anthropic API Key: {"[Set]" if config.anthropic_api_key else "[Not Set]"}
-• LlamaCloud API Key: {"[Set]" if config.llama_cloud_api_key else "[Not Set]"}
+• OpenAI API Key: {"[Set]" if (config.openai_api_key or os.getenv('OPENAI_API_KEY')) else "[Not Set]"}
+• Anthropic API Key: {"[Set]" if (config.anthropic_api_key or os.getenv('ANTHROPIC_API_KEY')) else "[Not Set]"}
+• LlamaCloud API Key: {"[Set]" if (config.llama_cloud_api_key or os.getenv('LLAMA_CLOUD_API_KEY')) else "[Not Set]"}
 
 **Commands:**
-• Type a number (1-3) to edit that field
+• Type a number (1-4) to edit that field
 • Type 'done' to finish
 • Type 'reset' to clear all settings
+• If you wish to edit the current model, type 'done' and use the `/model` command in the next session
         """
 
         ctx.write_event_to_stream(
@@ -174,7 +180,7 @@ Available commands:
         )
 
         return InputRequiredEvent(
-            prefix="What would you like to edit? (1-3, done, reset): ",  # type: ignore
+            prefix="What would you like to edit? (1-4, done, reset): ",  # type: ignore
             tag="config_menu",  # type: ignore
         )
 

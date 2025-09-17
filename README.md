@@ -108,7 +108,18 @@ $Env:ANTHROPIC_API_KEY="your-anthropic-api-key"
 
 Once you have the needed API keys in the environment, running `vibe-llama docuflows` will start a terminal interface where you will be able to interactively talk to the agent and create or edit document-centered workflows with the help of it.
 
-**Example usage**
+**Configuration**
+
+During an open session with `docuflows`, first of all you will be prompted to configure your LlamaCloud settings (project and organization ID are required for this step).
+
+You can optionally configure other settings, by using slash commands directly from the terminal interface:
+
+- `/configure` will allow you to re-configure the LlamaCloud project settings, as well as the default output directory and the default references file path.
+- `/model` will allow you to choose the LLM to use. By default, `vibe-llama docuflows` uses GPT-4.1, but you can change it to other models from the GPT family or to Claude models.
+
+Once you configured everything to your liking, you can start using the agent to create or edit workflows.
+
+**Usage**
 
 ```bash
 vibe-llama docuflows
@@ -117,8 +128,6 @@ vibe-llama docuflows
 > [!NOTE]
 >
 > _`vibe-llama docuflows` uses **AGENTS.md** as an instructions file (located under `.vibe-llama/rules/`). If you wish, you can directly create AGENTS.md with the `starter` command, by selecting `vibe-llama docuflows` as your agent. Alternatively, if an AGENTS.md is not present in your environment, `vibe-llama docuflows` will create one on the fly._
-
-During an open session with `docuflows`, you will be prompted to configure your LlamaCloud settings (project and organization ID are required for this step), and then you will be able to create or edit workflows.
 
 During the editing or generation process, you will be asked to provide reference files for your workflow (e.g. an invoice file if you are asking for an invoice-processing workflow), so make sure to prepare them.
 
