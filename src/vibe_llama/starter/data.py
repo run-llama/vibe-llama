@@ -1,6 +1,7 @@
 from vibe_llama.constants import BASE_URL
 
 agent_rules = {
+    "vibe-llama docuflows": ".vibe-llama/rules/AGENTS.md",
     "GitHub Copilot": ".github/copilot-instructions.md",
     "Claude Code": "CLAUDE.md",
     "OpenAI Codex CLI": "AGENTS.md",
@@ -17,7 +18,6 @@ agent_rules = {
     "Kilo Code": ".kilocode/rules/kilocode_instructions.md",
     "OpenCode": "AGENTS.md",
     "Goose": ".goosehints",
-    "vibe-llama docuflows": ".vibe-llama/rules/AGENTS.md",
 }
 
 services = {
