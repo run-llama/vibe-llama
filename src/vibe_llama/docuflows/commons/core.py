@@ -242,6 +242,17 @@ async def load_reference_files(
             )
             return "No reference files found"
 
+        if len(files) > 15:
+            _send_event(
+                ctx,
+                f"Found {len(files)} eligible files, but for perfomance reasons we are going to process only 15 of them at a time.",
+            )
+            files = files[:15]
+            _send_event(
+                ctx,
+                "Selected files:\n" + "\n-".join(files),
+            )
+
         # Parse each file
         for filename in sorted(files):
             file_path = os.path.join(actual_reference_path, filename)

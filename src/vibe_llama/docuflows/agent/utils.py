@@ -155,6 +155,8 @@ Available commands:
 3. Output Directory: {config.output_directory}
 4. Default Reference Files Path: {config.default_reference_files_path or "Not set"}
 
+> The reference files path contains all the files that will be used as example data around which the workflow will be structured. These files will be processed by LlamaParse, so, for performance and cost reduction reasons, we allow onyl a maximum of 15 reference files to be processed at a time.
+
 **Current model:**
 
 {config.current_model.capitalize()}
