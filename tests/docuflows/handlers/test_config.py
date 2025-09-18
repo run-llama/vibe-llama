@@ -16,11 +16,14 @@ from src.vibe_llama.docuflows.handlers.workflow_config import (
 
 @pytest.fixture()
 def ctx() -> Context[WorkflowState]:
-    agent_config = AgentConfig(project_id="hello", organization_id="hello")
+    agent_config = AgentConfig(
+        project_id="hello",
+        default_reference_files_path="hello",
+    )
     ctx = Context[WorkflowState](LlamaVibeWorkflow())
     ctx._state_store = InMemoryStateStore(
-        initial_state=WorkflowState(config=agent_config)
-    )  # type: ignore
+        initial_state=WorkflowState(config=agent_config)  # type: ignore
+    )
     return ctx
 
 

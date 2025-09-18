@@ -8,6 +8,7 @@ from vibe_llama.docuflows.agent.utils import (
 from vibe_llama.docuflows.commons import (
     StreamEvent,
     validate_uuid,
+    validate_reference_path,
 )
 from vibe_llama.docuflows.commons.typed_state import WorkflowState
 
@@ -37,22 +38,26 @@ async def handle_configuration(
         async with ctx.store.edit_state() as state:
             state.config = config
         return InputRequiredEvent(
-            prefix="Great! Now please provide your organization ID: "  # type: ignore
+            prefix="Great! Now please provide the default path where the agent should look for reference files (example data that will be used for the generation or editing of the workflow): "  # type: ignore
         )
 
-    if config.project_id and not config.organization_id:
-        if not validate_uuid(user_input):
+    if config.project_id is not None and not config.default_reference_files_path:
+        is_valid, error_msg, suggestions = validate_reference_path(user_input)
+        if not is_valid:
             ctx.write_event_to_stream(
                 StreamEvent(  # type: ignore
-                    delta="❌ Invalid organization ID format. Please provide a valid UUID.\n"
+                    delta=f"❌ Invalid default reference files path:\n{error_msg}\n",
+                    newline_after=True,
                 )
             )
             ctx.write_event_to_stream(
-                StreamEvent(delta="Example: 12345678-1234-1234-1234-123456789abc\n")  # type: ignore
+                StreamEvent(delta=f"\n{suggestions}\n")  # type: ignore
             )
-            return InputRequiredEvent(prefix="Please provide your organization ID: ")  # type: ignore
+            return InputRequiredEvent(
+                prefix="Please provide a valid reference files path: "
+            )  # type: ignore
 
-        config.organization_id = user_input
+        config.default_reference_files_path = user_input
         config.save_to_file()
         async with ctx.store.edit_state() as state:
             state.config = config
@@ -70,7 +75,6 @@ async def handle_show_config(ctx: Context[WorkflowState]) -> InputRequiredEvent:
     config_text = f"""
 Current Configuration:
 - Project ID: {config.project_id}
-- Organization ID: {config.organization_id}
 - Default Reference Files: {config.default_reference_files_path or "Not set"}
 - Output Directory: {config.output_directory}
     """

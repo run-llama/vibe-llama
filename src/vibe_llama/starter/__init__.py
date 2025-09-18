@@ -12,7 +12,7 @@ async def starter(
     service: Optional[str] = None,
     overwrite_files: Optional[bool] = None,
     verbose: Optional[bool] = None,
-) -> None:
+) -> bool:
     cs = Console(stderr=True)
     if agent is None and service is None:
         term_res = await run_terminal_interface()
@@ -20,13 +20,13 @@ async def starter(
             cs.log(
                 "[bold red]ERROR[/]\tYou need to choose at least one agent and one service before continuining. Exiting..."
             )
-            return None
+            return False
         agent_files, service_urls, overwrite_files = term_res
         if agent_files is None or service_urls is None:
             cs.log(
                 "[bold red]ERROR[/]\tYou need to choose at least one agent and one service before continuining. Exiting..."
             )
-            return None
+            return False
     elif agent is not None and service is not None:
         agent_files = [agent_rules[agent]]
         service_urls = [services[service]]
@@ -34,7 +34,7 @@ async def starter(
         cs.log(
             "[bold red]ERROR[/]\tEither you pass the options from command line or you choose them from terminal interface, you can't mix the two."
         )
-        return None
+        return False
     instructions = ""
     for serv_url in service_urls:
         if verbose:
@@ -52,7 +52,7 @@ async def starter(
         cs.log(
             "[bold red]ERROR[/]\tIt was not possible to retrieve instructions at this time, please try again later"
         )
-        return None
+        return False
     for fl in agent_files:
         if verbose:
             cs.log(f"[bold cyan]WRITING[/]\t{fl}")
@@ -62,7 +62,7 @@ async def starter(
     cs.log(
         "[bold green]SUCCESS✅[/]\tAll the instructions files have been written, happy vibe-hacking!"
     )
-    return None
+    return ".vibe-llama/rules/AGENTS.md" in agent_files
 
 
 __all__ = ["starter", "agent_rules", "services", "mcp_server"]

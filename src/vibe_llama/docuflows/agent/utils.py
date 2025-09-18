@@ -56,7 +56,6 @@ class AgentConfig(BaseModel):
     """Configuration for LlamaVibe"""
 
     project_id: str | None = None
-    organization_id: str | None = None
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
     llama_cloud_api_key: str | None = None
@@ -114,7 +113,7 @@ Available commands:
 • `/config` - Configure your LlamaCloud credentials and settings
 • `/model` - Configure OpenAI model (currently: {current_model})
 • `help` - Show general workflow help
-• `quit`, `exit`, `bye` - Exit LlamaVibe
+• `quit`, `exit`, `bye` - Exit vibe-llama docuflows
 
 **Regular Commands:**
 • "Generate a workflow" - Create new workflows from natural language
@@ -151,18 +150,25 @@ Available commands:
 🔧 **Current Configuration:**
 
 1. Project ID: {config.project_id or "[Not Set]"}
-2. Organization ID: {config.organization_id or "[Not Set]"}
-3. Output Directory: {config.output_directory}
+2. Output Directory: {config.output_directory}
+3. Default Reference Files Path: {config.default_reference_files_path or "Not set"}
+
+> The reference files path contains all the files that will be used as example data around which the workflow will be structured. These files will be processed by LlamaParse, so, for performance and cost reduction reasons, we allow only a maximum of 15 reference files to be processed at a time.
+
+**Current model:**
+
+{config.current_model.capitalize()}
 
 **API Keys:**
-• OpenAI API Key: {"[Set]" if config.openai_api_key else "[Not Set]"}
-• Anthropic API Key: {"[Set]" if config.anthropic_api_key else "[Not Set]"}
-• LlamaCloud API Key: {"[Set]" if config.llama_cloud_api_key else "[Not Set]"}
+• OpenAI API Key: {"[Set]" if (config.openai_api_key or os.getenv("OPENAI_API_KEY")) else "[Not Set]"}
+• Anthropic API Key: {"[Set]" if (config.anthropic_api_key or os.getenv("ANTHROPIC_API_KEY")) else "[Not Set]"}
+• LlamaCloud API Key: {"[Set]" if (config.llama_cloud_api_key or os.getenv("LLAMA_CLOUD_API_KEY")) else "[Not Set]"}
 
 **Commands:**
-• Type a number (1-3) to edit that field
+• Type a number (1-4) to edit that field
 • Type 'done' to finish
 • Type 'reset' to clear all settings
+• If you wish to edit the current model, type 'done' and use the `/model` command in the next session
         """
 
         ctx.write_event_to_stream(

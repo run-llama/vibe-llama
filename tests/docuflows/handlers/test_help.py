@@ -21,7 +21,7 @@ def llm() -> MockLLM:
 
 @pytest.fixture()
 def ctx() -> Context[WorkflowState]:
-    agent_config = AgentConfig(project_id="hello", organization_id="hello")
+    agent_config = AgentConfig(project_id="hello")
     ctx = Context[WorkflowState](LlamaVibeWorkflow())
     ctx._state_store = InMemoryStateStore(
         initial_state=WorkflowState(config=agent_config)

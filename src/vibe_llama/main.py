@@ -104,7 +104,20 @@ def main() -> None:
     if args.command == "starter":
         print_logo()
         if not args.mcp:
-            asyncio.run(starter(args.agent, args.service, args.overwrite, args.verbose))
+            t = asyncio.run(
+                starter(args.agent, args.service, args.overwrite, args.verbose)
+            )
+            if t:
+                start_docuflows = console.input(
+                    "We noticed you downloaded a rule file for [code]vibe-llama docuflows[/]: would you like to start the [bold]DocuFlows Agent[/] right away? [yes/no]"
+                )
+                if start_docuflows.strip().lower() == "yes":
+                    try:
+                        asyncio.run(run_cli())
+                    except KeyboardInterrupt:
+                        console.print("\n👋 Goodbye!", style="bold yellow")
+                else:
+                    console.print("\nOk, happy vibe-hacking!👋", style="bold yellow")
         else:
             asyncio.run(mcp_server.run_async("streamable-http"))
     elif args.command == "docuflows":
@@ -121,12 +134,22 @@ def main() -> None:
                 console.log("[bold red]ERROR[/]\tNo use case chosen, exiting...")
                 return None
             result = asyncio.run(
-                create_scaffold(request=(template_name or "basic"), path=path)
+                create_scaffold(request=(template_name or "basic"), path=path)  # type: ignore
             )
         else:
             result = asyncio.run(
                 create_scaffold(request=(args.use_case or "basic"), path=args.path)
             )
         console.log(result)
+        start_docuflows = console.input(
+            "Would you like to start the [bold]DocuFlows Agent[/] right away to edit the workflow scaffold you just downloaded? [yes/no]"
+        )
+        if start_docuflows.strip().lower() == "yes":
+            try:
+                asyncio.run(run_cli())
+            except KeyboardInterrupt:
+                console.print("\n👋 Goodbye!", style="bold yellow")
+            else:
+                console.print("\nOk, happy vibe-hacking!👋", style="bold yellow")
 
     return None

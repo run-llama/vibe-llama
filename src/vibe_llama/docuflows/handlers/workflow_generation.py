@@ -238,7 +238,6 @@ async def handle_generate_workflow(
             task,
             reference_files_path=cleaned_path,
             project_id=config.project_id,
-            organization_id=config.organization_id,
             complexity_assessment=complexity,
             ctx=ctx,
             llm=llm,
@@ -333,7 +332,7 @@ async def handle_generate_workflow(
 
         # Check for credential-related errors
         if "uuid_parsing" in error_msg or "Invalid UUID" in error_msg:
-            help_text = """💡 This looks like a credential issue. Your project_id or organization_id may be invalid.
+            help_text = """💡 This looks like a credential issue. Your project_id may be invalid.
 
 You can:
 1. Type 'reconfigure' to reset your credentials
