@@ -38,31 +38,10 @@ async def handle_configuration(
         async with ctx.store.edit_state() as state:
             state.config = config
         return InputRequiredEvent(
-            prefix="Great! Now please provide your organization ID: "  # type: ignore
+            prefix="Great! Now please provide the default path where the agent should look for reference files (example data that will be used for the generation or editing of the workflow): "  # type: ignore
         )
 
-    if config.project_id and not config.organization_id:
-        if not validate_uuid(user_input):
-            ctx.write_event_to_stream(
-                StreamEvent(  # type: ignore
-                    delta="❌ Invalid organization ID format. Please provide a valid UUID.\n"
-                )
-            )
-            ctx.write_event_to_stream(
-                StreamEvent(delta="Example: 12345678-1234-1234-1234-123456789abc\n")  # type: ignore
-            )
-            return InputRequiredEvent(prefix="Please provide your organization ID: ")  # type: ignore
-
-        config.organization_id = user_input
-        return InputRequiredEvent(
-            prefix="Awesome! Now please provide the default path where the agent should look for reference files: "
-        )  # type: ignore
-
-    if (
-        config.project_id is not None
-        and config.organization_id is not None
-        and not config.default_reference_files_path
-    ):
+    if config.project_id is not None and not config.default_reference_files_path:
         is_valid, error_msg, suggestions = validate_reference_path(user_input)
         if not is_valid:
             ctx.write_event_to_stream(
@@ -96,7 +75,6 @@ async def handle_show_config(ctx: Context[WorkflowState]) -> InputRequiredEvent:
     config_text = f"""
 Current Configuration:
 - Project ID: {config.project_id}
-- Organization ID: {config.organization_id}
 - Default Reference Files: {config.default_reference_files_path or "Not set"}
 - Output Directory: {config.output_directory}
     """

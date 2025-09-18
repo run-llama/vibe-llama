@@ -18,7 +18,6 @@ from src.vibe_llama.docuflows.handlers.workflow_config import (
 def ctx() -> Context[WorkflowState]:
     agent_config = AgentConfig(
         project_id="hello",
-        organization_id="hello",
         default_reference_files_path="hello",
     )
     ctx = Context[WorkflowState](LlamaVibeWorkflow())

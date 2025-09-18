@@ -56,7 +56,6 @@ class AgentConfig(BaseModel):
     """Configuration for LlamaVibe"""
 
     project_id: str | None = None
-    organization_id: str | None = None
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
     llama_cloud_api_key: str | None = None
@@ -151,11 +150,10 @@ Available commands:
 🔧 **Current Configuration:**
 
 1. Project ID: {config.project_id or "[Not Set]"}
-2. Organization ID: {config.organization_id or "[Not Set]"}
-3. Output Directory: {config.output_directory}
-4. Default Reference Files Path: {config.default_reference_files_path or "Not set"}
+2. Output Directory: {config.output_directory}
+3. Default Reference Files Path: {config.default_reference_files_path or "Not set"}
 
-> The reference files path contains all the files that will be used as example data around which the workflow will be structured. These files will be processed by LlamaParse, so, for performance and cost reduction reasons, we allow onyl a maximum of 15 reference files to be processed at a time.
+> The reference files path contains all the files that will be used as example data around which the workflow will be structured. These files will be processed by LlamaParse, so, for performance and cost reduction reasons, we allow only a maximum of 15 reference files to be processed at a time.
 
 **Current model:**
 
@@ -182,7 +180,7 @@ Available commands:
         )
 
         return InputRequiredEvent(
-            prefix="What would you like to edit? (1-4, done, reset): ",  # type: ignore
+            prefix="What would you like to edit? (1-3, done, reset): ",  # type: ignore
             tag="config_menu",  # type: ignore
         )
 

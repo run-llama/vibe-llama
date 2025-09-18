@@ -32,7 +32,7 @@ def create_agent_tools() -> list[BaseTool]:
         return json.dumps({"action": "show_config"})
 
     def reconfigure_tool() -> str:
-        """Reconfigure credentials (project_id and organization_id)"""
+        """Reconfigure credentials (project_id)"""
         return json.dumps({"action": "reconfigure"})
 
     def load_workflow_tool(workflow_path: str) -> str:
@@ -68,7 +68,7 @@ def create_agent_tools() -> list[BaseTool]:
         FunctionTool.from_defaults(
             fn=reconfigure_tool,
             name="reconfigure",
-            description="Reconfigure credentials (useful when project_id or organization_id are invalid)",
+            description="Reconfigure credentials (useful when project_id is invalid)",
         ),
         FunctionTool.from_defaults(
             fn=load_workflow_tool,

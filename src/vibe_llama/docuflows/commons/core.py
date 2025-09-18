@@ -33,7 +33,6 @@ from vibe_llama.docuflows.commons.typed_state import WorkflowState
 
 # Environment Variables for the generator
 DEFAULT_PROJECT_ID = os.environ.get("LLAMA_CLOUD_PROJECT_ID", "your-project-id")
-DEFAULT_ORGANIZATION_ID = os.environ.get("LLAMA_CLOUD_ORG_ID", "your-organization-id")
 
 # Initialize default LLM for code generation
 DEFAULT_LLM = OpenAI(model="gpt-5")
@@ -138,7 +137,6 @@ async def load_context_files(
 async def load_reference_files(
     reference_files_path: str | None = None,
     project_id: str | None = None,
-    organization_id: str | None = None,
     ctx: Context[WorkflowState] | None = None,  # type: ignore
 ) -> str:
     """
@@ -147,7 +145,6 @@ async def load_reference_files(
     Args:
         reference_files_path: Path to directory containing reference files
         project_id: LlamaCloud project ID
-        organization_id: LlamaCloud organization ID
         ctx: Optional context for event streaming
 
     Returns:
@@ -157,19 +154,12 @@ async def load_reference_files(
         return "No reference files provided"
 
     # Check if we have valid project and org IDs
-    if (
-        not project_id
-        or not organization_id
-        or project_id == "your-project-id"
-        or organization_id == "your-organization-id"
-    ):
-        _send_event(ctx, "ERROR: Invalid project_id or organization_id provided.")
+    if not project_id or project_id == "your-project-id":
+        _send_event(ctx, "ERROR: Invalid project_id provided.")
         _send_event(
             ctx, "Please provide valid LlamaCloud credentials to parse reference files."
         )
-        raise RuntimeError(
-            "Invalid project_id or organization_id for reference file parsing"
-        )
+        raise RuntimeError("Invalid project_id for reference file parsing")
 
     reference_files = []
 
@@ -187,7 +177,6 @@ async def load_reference_files(
             premium_mode=False,  # Use free mode for reference files
             result_type="markdown",  # type: ignore
             project_id=project_id,
-            organization_id=organization_id,
         )
 
         # Handle both single files and directories
@@ -322,7 +311,6 @@ async def generate_workflow(
     user_task: str,
     reference_files_path: str | None = None,
     project_id: str | None = None,
-    organization_id: str | None = None,
     complexity_assessment: DocumentComplexityAssessment | None = None,
     llm: LLM | None = None,
     ctx: Context[WorkflowState] | None = None,  # type: ignore
@@ -335,7 +323,6 @@ async def generate_workflow(
         data_files_path: Path to directory containing context files
         reference_files_path: Path to directory containing reference files
         project_id: LlamaCloud project ID
-        organization_id: LlamaCloud organization ID
         llm: LLM instance to use (defaults to DEFAULT_LLM)
         ctx: Optional context for event streaming
 
@@ -344,13 +331,12 @@ async def generate_workflow(
     """
     # Use provided IDs or defaults
     project_id = project_id or DEFAULT_PROJECT_ID
-    organization_id = organization_id or DEFAULT_ORGANIZATION_ID
     llm = llm or DEFAULT_LLM
 
     # Load context and reference files
     context_str = await load_context_files(ctx)
     reference_files_content = await load_reference_files(
-        reference_files_path, project_id, organization_id, ctx
+        reference_files_path, project_id, ctx
     )
 
     # Create chat prompt template
@@ -382,7 +368,6 @@ USE THESE RECOMMENDATIONS when configuring LlamaParse and ExtractConfig in your 
         reference_files_content=reference_files_content,
         user_task=user_task,
         project_id=project_id,
-        organization_id=organization_id,
         current_model=current_model,
         complexity_guidance=complexity_guidance,
     )

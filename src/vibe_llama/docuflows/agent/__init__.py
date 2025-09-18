@@ -113,7 +113,7 @@ class LlamaVibeWorkflow(Workflow):
             )
 
         # Check configuration
-        if not config.project_id or not config.organization_id:
+        if not config.project_id or not config.default_reference_files_path:
             async with ctx.store.edit_state() as state:
                 state.app_state = "configuring"
             ctx.write_event_to_stream(
@@ -135,7 +135,6 @@ class LlamaVibeWorkflow(Workflow):
 
 **Current Configuration:**
   • Project: {config.project_id}
-  • Organization: {config.organization_id}
   • Model: {config.current_model}
   • Status: ✅ Connected
 
@@ -301,17 +300,11 @@ What kind of document processing workflow would you like to create?"""
 
         elif user_input == "2":
             return InputRequiredEvent(
-                prefix=f"Current Organization ID: {config.organization_id or '[Not Set]'}\nEnter new Organization ID: ",  # type: ignore
-                tag="config_edit_org_id",  # type: ignore
-            )
-
-        elif user_input == "3":
-            return InputRequiredEvent(
                 prefix=f"Current Output Directory: {config.output_directory}\nEnter new Output Directory: ",  # type: ignore
                 tag="config_edit_output_dir",  # type: ignore
             )
 
-        elif user_input == "4":
+        elif user_input == "3":
             return InputRequiredEvent(
                 prefix=f"Current Default Reference Files Path: {config.default_reference_files_path}\nEnter new Reference Files Path: ",  # type: ignore
                 tag="config_edit_reference_files_path",  # type: ignore
@@ -355,26 +348,6 @@ What kind of document processing workflow would you like to create?"""
                 ctx.write_event_to_stream(
                     StreamEvent(  # type: ignore
                         delta="❌ Invalid UUID format. Project ID not changed.\n"
-                    )
-                )
-            # Return to config menu
-            return await handle_slash_command(ctx, "/config")
-
-        elif tag == "config_edit_org_id":
-            if user_input and validate_uuid(user_input):
-                config.organization_id = user_input
-                config.save_to_file()
-                async with ctx.store.edit_state() as state:
-                    state.config = config
-                ctx.write_event_to_stream(
-                    StreamEvent(  # type: ignore
-                        delta="✅ Organization ID updated!\n"
-                    )
-                )
-            elif user_input:
-                ctx.write_event_to_stream(
-                    StreamEvent(  # type: ignore
-                        delta="❌ Invalid UUID format. Organization ID not changed.\n"
                     )
                 )
             # Return to config menu

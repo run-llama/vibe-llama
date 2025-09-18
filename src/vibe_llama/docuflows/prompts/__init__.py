@@ -8,7 +8,7 @@ Your capabilities:
 4. Test workflows on sample data using the test_workflow tool
 5. Answer questions about workflow functionality using the answer_question tool
 6. Show current configuration using the show_config tool
-7. Reconfigure credentials using the reconfigure tool (useful when project_id/organization_id are invalid)
+7. Reconfigure credentials using the reconfigure tool (useful when project_id is invalid)
 
 CRITICAL - Tool Selection Rules (READ CAREFULLY):
 
@@ -198,9 +198,8 @@ As you can see from workflow_template.py and asset_manager_fund_analysis.md, her
     - Only import if splitting is needed in the workflow
 
 >>>> Configuration
-Use these values for project_id and organization_id:
+Use these values for project_id:
 - project_id: "{project_id}"
-- organization_id: "{organization_id}"
 
 Current LLM model: "{current_model}"
 - If the model starts with "gpt-", use: `from llama_index.llms.openai import OpenAI` and `llm = OpenAI(model="{current_model}")`
@@ -225,7 +224,7 @@ IMPORTANT GUIDELINES:
 - Only implement document splitting if the task explicitly requires it (e.g., "split by sections", "process each chapter separately")
 - If splitting is needed, import the splitting functions from document_utils.py: `from core.document_utils import afind_categories_and_splits`
 - Do NOT copy the entire function definition from asset_manager_fund_analysis.md - just import from document_utils.py
-- Do NOT use global declarations for project_id and organization_id in the main function - they should be set at module level
+- Do NOT use global declarations for project_id in the main function - they should be set at module level
 - If no splitting is needed, go directly from parsing to extraction
 - Make the workflow flexible to handle different document types based on the reference files
 - The main() function should accept input file paths as arguments (e.g., via argparse) so it can process multiple files
