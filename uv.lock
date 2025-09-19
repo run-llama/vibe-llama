@@ -3240,7 +3240,7 @@ wheels = [
 
 [[package]]
 name = "vibe-llama"
-version = "0.4.2"
+version = "0.4.3"
 source = { editable = "." }
 dependencies = [
     { name = "bm25s" },
