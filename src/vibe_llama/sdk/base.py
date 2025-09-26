@@ -1,9 +1,9 @@
 import warnings
-from typing import Literal, List, Optional
+from typing import List, Optional
 from rich.console import Console
 
 from vibe_llama.starter.utils import write_file, get_instructions
-from vibe_llama.starter.data import agent_rules, services as service_to_url
+from vibe_llama.starter.data import LibraryName, agent_rules, services as service_to_url
 from vibe_llama.scaffold import create_scaffold
 from vibe_llama.scaffold.scaffold import ProjectName
 from .utils import print_verbose
@@ -26,16 +26,14 @@ class VibeLlamaStarter:
     def __init__(
         self,
         agents: List[str],
-        services: List[
-            Literal["LlamaIndex", "LlamaCloud Services", "llama-index-workflows"]
-        ],
+        services: List[LibraryName],
     ) -> None:
         """
         Initialize VibeLlamaStarter.
 
         Args:
             agents (List[str]): List of coding agents to write instructions for.
-            services ( List[Literal["LlamaIndex", "LlamaCloud Services", "llama-index-workflows"]]): List of services to fetch instructions from.
+            services ( List[LibraryName]): List of services to fetch instructions from.
         """
         self.agent_files = [agent_rules[agent] for agent in agents]
         self.service_urls = [service_to_url[service] for service in services]
