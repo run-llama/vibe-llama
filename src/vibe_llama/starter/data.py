@@ -1,3 +1,5 @@
+from typing import Literal
+
 from vibe_llama.constants import BASE_URL
 
 agent_rules = {
@@ -20,8 +22,13 @@ agent_rules = {
     "Goose": ".goosehints",
 }
 
-services = {
+LibraryName = Literal[
+    "LlamaIndex", "LlamaCloud Services", "llama-index-workflows", "LlamaDeploy"
+]
+
+services: dict[LibraryName, str] = {
     "LlamaIndex": f"{BASE_URL}/documentation/llamaindex.md",
     "LlamaCloud Services": f"{BASE_URL}/documentation/llamacloud.md",
     "llama-index-workflows": f"{BASE_URL}/documentation/llama-index-workflows.md",
+    "LlamaDeploy": f"{BASE_URL}/documentation/llamadeploy.md",
 }
