@@ -152,7 +152,13 @@ vibe-llama scaffold # launch the terminal interface
 
 > [!NOTE]
 >
-> _You can find all the examples in the [`templates` folder](./templates/)_
+> Templates are fetched from remote repositories:
+> - https://github.com/run-llama/template-workflow-basic
+> - https://github.com/run-llama/template-workflow-document-parsing
+> - https://github.com/run-llama/template-workflow-human-in-the-loop
+> - https://github.com/run-llama/template-workflow-invoice-extraction
+> - https://github.com/run-llama/template-workflow-rag
+> - https://github.com/run-llama/template-workflow-web-scraping
 
 ## SDK
 

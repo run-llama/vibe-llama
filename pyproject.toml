@@ -39,9 +39,6 @@ vibe-llama = "vibe_llama.main:main"
 [tool.hatch.build.targets.wheel]
 only-include = ["src/vibe_llama"]
 
-[tool.hatch.build.targets.wheel.force-include]
-"templates" = "vibe_llama/templates"
-
 [tool.hatch.build.targets.wheel.sources]
 "src" = ""
 

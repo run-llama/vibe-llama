@@ -1,55 +1,50 @@
 from pathlib import Path
 import pytest
-import subprocess
-import toml
 import os
 
 
 from src.vibe_llama.scaffold import PROJECTS, create_scaffold
+import src.vibe_llama.scaffold.scaffold as scaffold_module
 from src.vibe_llama.scaffold.terminal import app1, app2
 from prompt_toolkit.application import Application
 
 
-def test_template_pyprojects_sync_with_catalog() -> None:
-    """Ensure static template pyprojects match the PROJECTS catalog."""
-    templates_root = Path(__file__).resolve().parents[2] / "templates"
-    for name in PROJECTS:
-        p = templates_root / name / "pyproject.toml"
-        assert p.is_file(), f"Missing pyproject for template {name}"
-        data = toml.loads(p.read_text())
-        assert data["project"]["name"] == name.replace("_", "-")
-        assert data["project"]["version"] == "0.1.0"
-        assert data["project"]["description"] is not None
-        assert data["project"]["readme"] == "README.md"
-        assert data["project"]["dependencies"] is not None
-        # Test that the workflow can be imported and validated
-
-        # Change to the template directory to run the validation
-        template_dir = templates_root / name
-        module_name = name.replace("-", "_")
-
-        # Run validation in a subprocess
-        result = subprocess.run(
-            [
-                "uv",
-                "run",
-                "python",
-                "-c",
-                f"from {module_name}.workflow import workflow; workflow._validate()",
-            ],
-            cwd=template_dir,
-            capture_output=False,
-            check=True,
-            text=True,
+@pytest.fixture()
+def fake_copier(monkeypatch):
+    def _run_copy(_src: str, dst: str, *args, **kwargs):
+        # create minimal project structure with workflow.py, README.md, pyproject.toml
+        # infer module name from final path component
+        os.makedirs(dst, exist_ok=True)
+        # try to detect module directory name from dst
+        # if dst ends with '/basic', module is 'basic' etc.
+        module_name = os.path.basename(dst).replace("-", "_")
+        # write pyproject
+        (Path(dst) / "pyproject.toml").write_text(
+            f"""
+[project]
+name = "{module_name.replace('_', '-')}"
+version = "0.1.0"
+description = "Test template"
+readme = "README.md"
+dependencies = ["llama-index-core>=0.13.3"]
+""".strip()
+        )
+        # write README
+        (Path(dst) / "README.md").write_text("# Template\n")
+        # write minimal workflow module
+        pkg_dir = Path(dst) / "src" / module_name
+        os.makedirs(pkg_dir, exist_ok=True)
+        (pkg_dir / "__init__.py").write_text("")
+        (pkg_dir / "workflow.py").write_text(
+            "from llama_index.core.workflow import Workflow\nworkflow = Workflow()\n"
         )
 
-        assert result.returncode == 0, (
-            f"Workflow validation failed for {name}: {result.stderr}"
-        )
+    monkeypatch.setattr(scaffold_module, "run_copy", _run_copy)
+    return _run_copy
 
 
 @pytest.mark.asyncio
-async def test_create_scaffold_defaults(tmp_path: Path):
+async def test_create_scaffold_defaults(tmp_path: Path, fake_copier):
     os.chdir(tmp_path)
     succ = await create_scaffold()
     assert succ.startswith("[bold green]")
@@ -62,7 +57,7 @@ async def test_create_scaffold_defaults(tmp_path: Path):
 
 
 @pytest.mark.asyncio
-async def test_create_scaffold_custom(tmp_path: Path):
+async def test_create_scaffold_custom(tmp_path: Path, fake_copier):
     os.chdir(tmp_path)
     succ = await create_scaffold("document_parsing", str(tmp_path / "example"))
     assert succ.startswith("[bold green]")
