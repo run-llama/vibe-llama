@@ -153,6 +153,7 @@ vibe-llama scaffold # launch the terminal interface
 > [!NOTE]
 >
 > Templates are fetched from remote repositories:
+>
 > - https://github.com/run-llama/template-workflow-basic
 > - https://github.com/run-llama/template-workflow-document-parsing
 > - https://github.com/run-llama/template-workflow-human-in-the-loop

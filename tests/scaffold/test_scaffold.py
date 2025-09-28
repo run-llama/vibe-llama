@@ -3,7 +3,7 @@ import pytest
 import os
 
 
-from src.vibe_llama.scaffold import PROJECTS, create_scaffold
+from src.vibe_llama.scaffold import create_scaffold
 import src.vibe_llama.scaffold.scaffold as scaffold_module
 from src.vibe_llama.scaffold.terminal import app1, app2
 from prompt_toolkit.application import Application
@@ -22,7 +22,7 @@ def fake_copier(monkeypatch):
         (Path(dst) / "pyproject.toml").write_text(
             f"""
 [project]
-name = "{module_name.replace('_', '-')}"
+name = "{module_name.replace("_", "-")}"
 version = "0.1.0"
 description = "Test template"
 readme = "README.md"
