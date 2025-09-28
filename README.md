@@ -152,8 +152,14 @@ vibe-llama scaffold # launch the terminal interface
 
 > [!NOTE]
 >
-> _Examples are pulled from GitHub template repositories at runtime:_
-> `https://github.com/run-llama/template-workflow-basic`, `https://github.com/run-llama/template-workflow-document-parsing`, `https://github.com/run-llama/template-workflow-human-in-the-loop`, `https://github.com/run-llama/template-workflow-invoice-extraction`, `https://github.com/run-llama/template-workflow-rag`, `https://github.com/run-llama/template-workflow-web-scraping`.
+> Starters are pulled from GitHub template repositories via [copier](https://copier.readthedocs.io/en/stable/):\_
+>
+> - `https://github.com/run-llama/template-workflow-basic`
+> - `https://github.com/run-llama/template-workflow-document-parsing`
+> - `https://github.com/run-llama/template-workflow-human-in-the-loop`
+> - `https://github.com/run-llama/template-workflow-invoice-extraction`
+> - `https://github.com/run-llama/template-workflow-rag`
+> - `https://github.com/run-llama/template-workflow-web-scraping`
 
 ## SDK
 

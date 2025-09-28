@@ -8,6 +8,40 @@ from src.vibe_llama.scaffold.terminal import app1, app2
 from prompt_toolkit.application import Application
 
 
+@pytest.fixture(autouse=True)
+def stub_copier_run_copy(monkeypatch, tmp_path):
+    """Stub out copier.run_copy used by scaffold to avoid network access.
+
+    Writes minimal project files into the destination directory so tests
+    can assert their presence without cloning remote templates.
+    """
+    import copier
+
+    def _stub_run_copy(template_src, dst_path, *args, **kwargs):
+        # Infer module name from the template source string
+        src = str(template_src)
+        src = src.split("/")[-1]
+        src = src.removeprefix("template-workflow-")
+        module_name = (src or "basic").replace("-", "_")
+
+        dst = Path(dst_path)
+        (dst / "src" / module_name).mkdir(parents=True, exist_ok=True)
+        (dst / "pyproject.toml").write_text(
+            """[project]
+name = "{name}"
+version = "0.1.0"
+description = "Test template"
+readme = "README.md"
+dependencies = []
+""".format(name=module_name.replace("_", "-"))
+        )
+        (dst / "README.md").write_text(f"# {module_name}\n")
+        (dst / "src" / module_name / "workflow.py").write_text("workflow = object()\n")
+
+    monkeypatch.setattr(copier, "run_copy", _stub_run_copy)
+    yield
+
+
 def test_dummy_templates_removed() -> None:
     """Ensure local templates directory is not used anymore."""
     templates_root = Path(__file__).resolve().parents[2] / "templates"
