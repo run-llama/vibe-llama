@@ -13,7 +13,7 @@ dev = [
 
 [project]
 name = "vibe-llama"
-version = "0.4.4"
+version = "0.4.5"
 description = "vibe-llama is a set of tools that are designed to help developers build working and reliable applications with LlamaIndex, LlamaCloud Services and llama-index-workflows."
 readme = "README.md"
 requires-python = ">=3.10"
