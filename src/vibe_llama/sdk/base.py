@@ -120,7 +120,7 @@ class VibeLlamaScaffold:
         Download a template.
 
         Args:
-            template_name (ProjectName): Name of the template. You can find all the available templates [here](https://github.com/run-llama/vibe-llama/blob/main/templates/). Defaults to `basic` if not provided
+            template_name (ProjectName): Name of the template. Defaults to `basic` if not provided
             save_path (Optional[str]): Path where to save the downloaded template. Defaults to `.vibe-llama/scaffold` if not provided
         """
         result = await create_scaffold(template_name, save_path)
