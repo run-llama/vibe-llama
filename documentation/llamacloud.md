@@ -100,7 +100,7 @@ result = parser.get_json_result("./my_file.pdf")
 tables = parser.get_tables(result)
 ```
 
-See more details about the result object in the [example notebook](https://www.notion.so/llamaindex/docs/examples-py/parse/demo_json_tour.ipynb).
+See more details about the result object in the [example notebook](https://github.com/run-llama/llama_cloud_services/blob/main/examples/parse/demo_json_tour.ipynb).
 
 <!-- sep---sep -->
 
@@ -480,7 +480,7 @@ advanced_config = ExtractConfig(
 - `use_reasoning`: Explanations for extraction decisions
 - `confidence_scores`: Quantitative confidence measures (MULTIMODAL/PREMIUM only)
 
-For complete configuration options, advanced settings, and detailed examples, see the [LlamaExtract Configuration Documentation](https://docs.cloud.llamaindex.ai/llamaextract/features/options).
+For complete configuration options, advanced settings, and detailed examples, see the [LlamaExtract Configuration Documentation](https://developers.llamaindex.ai/python/cloud/llamaextract/features/options).
 
 <!-- sep---sep -->
 

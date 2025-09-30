@@ -15,7 +15,7 @@ LlamaAgents is built on top of LlamaIndex's (soon-to-be) open source LlamaDeploy
 
 In addition to LlamaDeploy, LlamaIndex published additional SDKs to facilitate rapid development:
 
-- Our `llama-cloud-services` JS and Python SDKs offer a simple way to persist ad hoc Agent Data. [Read more here](/python/cloud/llamaagents/agent-data-overview).
+- Our `llama-cloud-services` JS and Python SDKs offer a simple way to persist ad hoc Agent Data. [Read more here](https://developers.llamaindex.ai/python/cloud/llamaagents/agent-data-overview).
 - Our `@llamaindex/ui` React library offers off-the-shelf components and hooks to facilitate developing workflow-driven UIs.
 
 # Getting Started with LlamaDeploy
@@ -52,7 +52,7 @@ llamactl init
 
 This will prompt for some details, and create a Python module that contains LlamaIndex workflows, plus an optional UI you can serve as a static frontend.
 
-Application configuration is managed within your project's `pyproject.toml`, where you can define Python workflow instances that should be served, environment details, and configuration for how the UI should be built. See the [Deployment Config Reference](/python/cloud/llamaagents/configuration-reference) for details on all configurable fields.
+Application configuration is managed within your project's `pyproject.toml`, where you can define Python workflow instances that should be served, environment details, and configuration for how the UI should be built. See the [Deployment Config Reference](https://developers.llamaindex.ai/python/cloud/llamaagents/configuration-reference) for details on all configurable fields.
 
 ## Develop
 
@@ -90,9 +90,9 @@ workflow = MyWorkflow()
 
 At this point, you can get to coding. The development server will detect changes as you save files. It will even resume in-progress workflows!
 
-For more information about CLI flags available, see [`llamactl serve`](/python/cloud/llamacloud/llamadeploy/llamactl-reference/commands-serve).
+For more information about CLI flags available, see [`llamactl serve`](https://developers.llamaindex.ai/python/cloud/llamacloud/llamadeploy/llamactl-reference/commands-serve).
 
-For a more detailed reference on how to define and expose workflows, see [Workflows & App Server API](/python/cloud/llamacloud/llamadeploy/workflow-api).
+For a more detailed reference on how to define and expose workflows, see [Workflows & App Server API](https://developers.llamaindex.ai/python/cloud/llamacloud/llamadeploy/workflow-api).
 
 ## Create a Deployment
 
@@ -140,7 +140,7 @@ LlamaDeploy runs your LlamaIndex workflows locally and in the cloud. Author your
 
 ## Learn the basics (LlamaIndex Workflows)
 
-LlamaDeploy is built on top of LlamaIndex workflows. If you're new to workflows, start here: [LlamaIndex Workflows](/python/workflows).
+LlamaDeploy is built on top of LlamaIndex workflows. If you're new to workflows, start here: [LlamaIndex Workflows](https://developers.llamaindex.ai/python/workflows).
 
 ## Author a workflow (quick example)
 
@@ -176,11 +176,11 @@ answer-question = "app.workflows:qa_workflow"
 
 ## How serving works (local and cloud)
 
-- `llamactl serve` discovers your config. See [`llamactl serve`](/python/cloud/llamaagents/llamactl-reference/commands-serve).
+- `llamactl serve` discovers your config. See [`llamactl serve`](https://developers.llamaindex.ai/python/cloud/llamaagents/llamactl-reference/commands-serve).
 - The app server loads your workflows.
 - HTTP routes are exposed under `/deployments/{name}`. In development, `{name}` defaults to your Python project name and is configurable. On deploy, you can set a new name; a short random suffix may be appended to ensure uniqueness.
 - Workflow instances are registered under the specified name. For example, `POST /deployments/app/workflows/answer-question/run` runs the workflow above.
-- If you configure a UI, it runs alongside your API (proxied in dev, static in preview). For details, see [UI build and dev integration](/python/cloud/llamaagents/ui-build).
+- If you configure a UI, it runs alongside your API (proxied in dev, static in preview). For details, see [UI build and dev integration](https://developers.llamaindex.ai/python/cloud/llamaagents/ui-build).
 
 During development, the API is available at `http://localhost:4501`. After you deploy to LlamaCloud, it is available at `https://api.cloud.llamaindex.ai`.
 
@@ -221,7 +221,7 @@ The LlamaDeploy toolchain is unopinionated about your UI stack — bring your ow
 
 ## How the integration works
 
-`llamactl` starts and proxies your frontend during development by calling your `npm run dev` command. When you deploy, it builds your UI statically with `npm run build`. These commands are configurable; see [UIConfig](/python/cloud/llamaagents/configuration-reference#uiconfig-fields) in the configuration reference. You can also use other package managers if you have [corepack](https://nodejs.org/download/release/v19.9.0/docs/api/corepack.html) enabled.
+`llamactl` starts and proxies your frontend during development by calling your `npm run dev` command. When you deploy, it builds your UI statically with `npm run build`. These commands are configurable; see [UIConfig](https://developers.llamaindex.ai/python/cloud/llamaagents/configuration-reference#uiconfig-fields) in the configuration reference. You can also use other package managers if you have [corepack](https://nodejs.org/download/release/v19.9.0/docs/api/corepack.html) enabled.
 
 During development, `llamactl` starts its workflow server (port `4501` by default) and starts the UI, passing a `PORT` environment variable (set to `4502` by default) and a `LLAMA_DEPLOY_DEPLOYMENT_BASE_PATH` (for example, `/deployments/<name>/ui`) where the UI will be served. It then proxies requests from the server to the client app from that base path.
 
@@ -232,7 +232,7 @@ Once deployed, the Kubernetes operator builds your application with the configur
 1. Serve the dev UI on the configured `PORT`. This environment variable tells your dev server which port to use during development. Many frameworks, such as Next.js, read this automatically.
 2. Set your app's base path to the value of `LLAMA_DEPLOY_DEPLOYMENT_BASE_PATH`. LlamaDeploy applications rely on this path to route to multiple workflow deployments. The proxy leaves this path intact so your application can link internally using absolute paths. Your development server and router need to be aware of this base path. Most frameworks provide a way to configure it. For example, Vite uses [`base`](https://vite.dev/config/shared-options.html#base).
 3. Re-export the `LLAMA_DEPLOY_DEPLOYMENT_BASE_PATH` env var to your application. Read this value (for example, in React Router) to configure a base path. This is also often necessary to link static assets correctly.
-4. If you're integrating with LlamaCloud, re-export the `LLAMA_DEPLOY_PROJECT_ID` env var to your application and use it to scope your LlamaCloud requests to the same project. Read more in the [Configuration Reference](/python/cloud/llamaagents/configuration-reference#authorization).
+4. If you're integrating with LlamaCloud, re-export the `LLAMA_DEPLOY_PROJECT_ID` env var to your application and use it to scope your LlamaCloud requests to the same project. Read more in the [Configuration Reference](https://developers.llamaindex.ai/python/cloud/llamaagents/configuration-reference#authorization).
 5. We also recommend re-exporting `LLAMA_DEPLOY_DEPLOYMENT_NAME`, which can be helpful for routing requests to your workflow server correctly.
 
 ## Examples
@@ -347,7 +347,7 @@ export default function Logo() {
 
 ## Configure the UI output directory
 
-Your UI must output static assets that the platform can locate. Configure `ui.directory` and `ui.build_output_dir` as described in the [Deployment Config Reference](/python/cloud/llamaagents/configuration-reference#uiconfig-fields). Default: `${ui.directory}/dist`
+Your UI must output static assets that the platform can locate. Configure `ui.directory` and `ui.build_output_dir` as described in the [Deployment Config Reference](https://developers.llamaindex.ai/python/cloud/llamaagents/configuration-reference#uiconfig-fields). Default: `${ui.directory}/dist`
 
 <!-- sep---sep -->
 
@@ -614,7 +614,7 @@ Important behavior and constraints:
 
 Project scoping:
 
-- You can scope requests to a specific project by providing the `Project-Id` header (UUID). This is especially important if your API key has access to multiple projects. Read more in the [Configuration Reference](/python/cloud/llamaagents/configuration-reference#authorization).
+- You can scope requests to a specific project by providing the `Project-Id` header (UUID). This is especially important if your API key has access to multiple projects. Read more in the [Configuration Reference](https://developers.llamaindex.ai/python/cloud/llamaagents/configuration-reference#authorization).
 
 ### Filter DSL
 
@@ -653,14 +653,14 @@ SDKs and environments:
 
 Next steps:
 
-- Python usage: see [Agent Data (Python)](/python/cloud/llamaagents/agent-data-python)
-- JavaScript usage: see [Agent Data (JavaScript)](/python/cloud/llamaagents/agent-data-javascript)
+- Python usage: see [Agent Data (Python)](https://developers.llamaindex.ai/python/cloud/llamaagents/agent-data-python)
+- JavaScript usage: see [Agent Data (JavaScript)](https://developers.llamaindex.ai/python/cloud/llamaagents/agent-data-javascript)
 
 <!-- sep---sep -->
 
 # Agent Data (Python)
 
-See the [Agent Data Overview](/python/cloud/llamaagents/agent-data-overview) for concepts, constraints, and environment details.
+See the [Agent Data Overview](https://developers.llamaindex.ai/python/cloud/llamaagents/agent-data-overview) for concepts, constraints, and environment details.
 
 ### Install
 
@@ -806,7 +806,7 @@ Details:
 
 Agent Data is a JSON store tied to a `deploymentName` and `collection`. Use the official JavaScript SDK with strong typing for CRUD, search, and aggregation.
 
-See the [Agent Data Overview](/python/cloud/llamaagents/agent-data-overview) for concepts, constraints, and environment details.
+See the [Agent Data Overview](https://developers.llamaindex.ai/python/cloud/llamaagents/agent-data-overview) for concepts, constraints, and environment details.
 
 Install:
 
@@ -911,7 +911,7 @@ for (const r of results.items) {
 }
 ```
 
-See the [Agent Data Overview](/python/cloud/llamaagents/agent-data-overview#filter-dsl) for more details on filters.
+See the [Agent Data Overview](https://developers.llamaindex.ai/python/cloud/llamaagents/agent-data-overview#filter-dsl) for more details on filters.
 
 - Filter keys target `data` fields, except `created_at`/`updated_at` which are top-level.
 - Sort with comma-separated specs; prefix data fields in `orderBy` (e.g., `"data.name desc, created_at"`).
