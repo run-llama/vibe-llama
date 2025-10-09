@@ -32,8 +32,7 @@ jobs:
         run: uv build
 
       - name: Test installing built package (core)
-        working-directory: packages/vibe-llama-core
         shell: bash
         run: |
           uv venv
-          uv pip install dist/*.whl
+          uv pip install dist/vibe_llama_core-*.whl
