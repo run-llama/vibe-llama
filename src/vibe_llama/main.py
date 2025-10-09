@@ -4,12 +4,12 @@ import argparse
 import asyncio
 from rich.console import Console
 
-from vibe_llama.scaffold.scaffold import PROJECTS
-
-from .starter import starter, agent_rules, services, mcp_server
+from .starter import starter, mcp_server
 from .docuflows import run_cli
 from .logo import print_logo
-from .scaffold import create_scaffold, run_scaffold_interface
+from .scaffold import run_scaffold_interface
+from vibe_llama_core.templates import download_template, PROJECTS
+from vibe_llama_core.docs import agent_rules, services
 
 
 def main() -> None:
@@ -134,11 +134,11 @@ def main() -> None:
                 console.log("[bold red]ERROR[/]\tNo use case chosen, exiting...")
                 return None
             result = asyncio.run(
-                create_scaffold(request=(template_name or "basic"), path=path)  # type: ignore
+                download_template(request=(template_name or "basic"), path=path)  # type: ignore
             )
         else:
             result = asyncio.run(
-                create_scaffold(request=(args.use_case or "basic"), path=args.path)
+                download_template(request=(args.use_case or "basic"), path=args.path)
             )
         console.log(result)
         start_docuflows = console.input(

@@ -1,6 +1,6 @@
 from typing import Literal
 
-from vibe_llama.constants import BASE_URL
+from vibe_llama_core.constants import BASE_URL
 
 agent_rules = {
     "vibe-llama docuflows": ".vibe-llama/rules/AGENTS.md",

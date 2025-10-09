@@ -2,10 +2,13 @@ import warnings
 from typing import List, Optional
 from rich.console import Console
 
-from vibe_llama.starter.utils import write_file, get_instructions
-from vibe_llama.starter.data import LibraryName, agent_rules, services as service_to_url
-from vibe_llama.scaffold import create_scaffold
-from vibe_llama.scaffold.scaffold import ProjectName
+from vibe_llama_core.docs.utils import write_file, get_instructions
+from vibe_llama_core.docs.data import (
+    LibraryName,
+    agent_rules,
+    services as service_to_url,
+)
+from vibe_llama_core.templates.scaffold import download_template, ProjectName
 from .utils import print_verbose
 from .errors import (
     FailedToWriteFilesError,
@@ -123,7 +126,7 @@ class VibeLlamaScaffold:
             template_name (ProjectName): Name of the template. Defaults to `basic` if not provided
             save_path (Optional[str]): Path where to save the downloaded template. Defaults to `.vibe-llama/scaffold` if not provided
         """
-        result = await create_scaffold(template_name, save_path)
+        result = await download_template(template_name, save_path)
         if self.colored_output:
             self._console.log(result)
         else:

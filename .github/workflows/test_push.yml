@@ -21,5 +21,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
 
-      - name: Run Tests
+      - name: Run Tests on Main Package
+        run: uv run -- pytest tests
+
+      - name: Run Tests on Core Package
+        working-directory: packages/vibe-llama-core
         run: uv run -- pytest tests

@@ -1,5 +1,9 @@
 # vibe-llama
 
+> [!NOTE]
+>
+> _Find the documentation about vibe-llama-core (core utilities for downloading documentation and templates) [here](./packages/vibe-llama-core/README.md)_
+
 **vibe-llama** is a set of tools that are designed to help developers build working and reliable applications with [LlamaIndex](https://github.com/run-llama/llama_index), [LlamaCloud Services](https://github.com/run-llama/llama_cloud_services) and [llama-index-workflows](https://github.com/run-llama/workflows-py).
 
 This command-line tool provides two main capabilities:

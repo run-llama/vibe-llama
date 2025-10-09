@@ -1,9 +1,10 @@
 import pytest
 import Stemmer
 
-from vibe_llama.starter.utils import get_text_chunks, Retriever, get_instructions
-from vibe_llama.starter import services
-from vibe_llama.constants import CHUNKS_SEPARATOR
+from vibe_llama.starter.utils import get_text_chunks, Retriever
+from vibe_llama_core.docs.data import services
+from vibe_llama_core.docs.utils import get_instructions
+from vibe_llama_core.constants import CHUNKS_SEPARATOR
 
 
 @pytest.mark.asyncio

@@ -3,7 +3,7 @@ from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.styles import Style
 from typing import Optional, Tuple
 
-from vibe_llama.scaffold.scaffold import PROJECTS
+from vibe_llama_core.templates import PROJECTS
 
 
 style = Style.from_dict(

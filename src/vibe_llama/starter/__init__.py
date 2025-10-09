@@ -2,14 +2,14 @@ from typing import Optional
 from rich.console import Console
 
 from .terminal import run_terminal_interface
-from .utils import write_file, get_instructions
-from .data import agent_rules, services
 from .mcp import mcp_server
+from vibe_llama_core.docs.utils import write_file, get_instructions
+from vibe_llama_core.docs.data import agent_rules, services, LibraryName
 
 
 async def starter(
     agent: Optional[str] = None,
-    service: Optional[str] = None,
+    service: Optional[LibraryName] = None,
     overwrite_files: Optional[bool] = None,
     verbose: Optional[bool] = None,
 ) -> bool:
@@ -65,4 +65,4 @@ async def starter(
     return ".vibe-llama/rules/AGENTS.md" in agent_files
 
 
-__all__ = ["starter", "agent_rules", "services", "mcp_server"]
+__all__ = ["starter", "mcp_server"]

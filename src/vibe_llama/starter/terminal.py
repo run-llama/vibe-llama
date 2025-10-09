@@ -4,7 +4,7 @@ from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.styles import Style
 from typing import Optional, Tuple, List, cast
 
-from .data import agent_rules, services
+from vibe_llama_core.docs.data import agent_rules, services
 
 style = Style.from_dict(
     {
