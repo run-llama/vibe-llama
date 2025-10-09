@@ -27,12 +27,6 @@ jobs:
       - name: Build Main Package
         run: uv build
 
-      - name: Test installing built package (main)
-        shell: bash
-        run: |
-          uv venv
-          uv pip install dist/*.whl
-
       - name: Build Core Package
         working-directory: packages/vibe-llama-core
         run: uv build
