@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 from src.vibe_llama.sdk import VibeLlamaStarter
-from src.vibe_llama.starter import agent_rules, services
+from vibe_llama_core.docs.data import agent_rules, services
 
 
 def test_init() -> None:

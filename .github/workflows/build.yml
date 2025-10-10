@@ -24,11 +24,15 @@ jobs:
       - name: Set up Python
         run: uv python install
 
-      - name: Build
+      - name: Build Main Package
         run: uv build
 
-      - name: Test installing built package
+      - name: Build Core Package
+        working-directory: packages/vibe-llama-core
+        run: uv build
+
+      - name: Test installing built package (core)
         shell: bash
         run: |
           uv venv
-          uv pip install dist/*.whl
+          uv pip install dist/vibe_llama_core-*.whl

@@ -1,55 +1,11 @@
-import os
-import httpx
-import asyncio
 import bm25s
 import Stemmer
 
-from pathlib import Path
 from bm25s.tokenization import Tokenized
-from typing import Optional, List, Union
-from .data import services
-from vibe_llama.constants import CHUNKS_SEPARATOR
-
-
-def write_file(
-    file_path: str, content: str, overwrite_file: bool, service_url: str
-) -> None:
-    directory = os.path.dirname(file_path)
-    if not Path(directory).is_dir():
-        os.makedirs(directory, exist_ok=True)
-    if not overwrite_file:
-        if Path(file_path).is_file():
-            with open(file_path) as f:
-                file_content = f.read()
-            content = file_content + "\n" + content
-    if file_path.startswith(".cursor"):
-        frontmatter = f"""---
-description: Instructions from {service_url} for Cursor coding agent
-alwaysApply: false
----
-
-"""
-        content = frontmatter + "\n" + content.replace(CHUNKS_SEPARATOR, "")
-    with open(file_path, "w") as w:
-        w.write(content)
-    return None
-
-
-async def get_instructions(
-    instructions_url: str, max_retries: int = 10, retry_interval: float = 0.5
-) -> Optional[str]:
-    async with httpx.AsyncClient() as client:
-        retries = 0
-        while True:
-            if retries < max_retries:
-                response = await client.get(instructions_url)
-                if response.status_code == 200:
-                    return response.text
-                else:
-                    retries += 1
-                    await asyncio.sleep(retry_interval)
-            else:
-                return None
+from typing import List, Union
+from vibe_llama_core.docs.data import services
+from vibe_llama_core.constants import CHUNKS_SEPARATOR
+from vibe_llama_core.docs.utils import get_instructions
 
 
 async def get_text_chunks() -> List[str]:

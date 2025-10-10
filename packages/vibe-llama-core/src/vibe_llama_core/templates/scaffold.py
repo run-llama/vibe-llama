@@ -27,10 +27,20 @@ TEMPLATES: dict[ProjectName, str] = {
 }
 
 
-async def create_scaffold(
+async def download_template(
     request: ProjectName = "basic",
     path: Optional[str] = None,
 ) -> str:
+    """
+    Create a local copy of a LlamaIndex Workflow template.
+
+    Args:
+        request (ProjectName): name of the requested template
+        path (Optional[str]): path where to write the template. If not provided, defaults to .vibe-llama/scaffold/{template-name}
+
+    Returns:
+        str: Operation status report
+    """
     try:
         if not path:
             actual_path = f".vibe-llama/scaffold/{request}"
