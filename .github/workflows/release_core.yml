@@ -20,7 +20,7 @@ jobs:
 
       - name: Build
         working-directory: packages/vibe-llama-core/
-        run: uv build
+        run: uv build -o dist
 
       - name: Publish to PyPI
         working-directory: packages/vibe-llama-core/
