@@ -607,16 +607,16 @@ classifier = ClassifyClient.from_api_key(api_key)
 rules = [
     ClassifierRule(
         type="invoice",
-        description="Documents that are invoices for goods or services, containing line items, prices, and payment terms"
+        description="Documents that are invoices for goods or services, containing line items, prices, and payment terms",
     ),
     ClassifierRule(
         type="contract",
-        description="Legal agreements between parties, containing terms, conditions, and signatures"
+        description="Legal agreements between parties, containing terms, conditions, and signatures",
     ),
     ClassifierRule(
-        type="receipt", 
-        description="Proof of payment documents, typically shorter than invoices, showing items purchased and amount paid"
-    )
+        type="receipt",
+        description="Proof of payment documents, typically shorter than invoices, showing items purchased and amount paid",
+    ),
 ]
 
 # Classify a PDF directly (parsing happens implicitly)
@@ -651,14 +651,15 @@ markdown_content = await parse_result.aget_markdown()
 
 # Step 2: Classify based on markdown content
 # Write markdown to temp file for classification
-with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as tmp:
+with tempfile.NamedTemporaryFile(
+    mode="w", suffix=".md", delete=False, encoding="utf-8"
+) as tmp:
     tmp.write(markdown_content)
     temp_path = Path(tmp.name)
 
 classifier = ClassifyClient.from_api_key(api_key)
 classification = await classifier.aclassify_file_path(
-    rules=rules,
-    file_input_path=str(temp_path)
+    rules=rules, file_input_path=str(temp_path)
 )
 
 doc_type = classification.items[0].result.type
@@ -680,7 +681,7 @@ source_text = SourceText(text_content=markdown_content, filename="document.md")
 extraction_result = extractor.extract(
     data_schema=schema,
     config=ExtractConfig(extraction_mode="BALANCED"),
-    files=source_text
+    files=source_text,
 )
 
 print(f"Extracted data: {extraction_result.data}")
@@ -696,19 +697,21 @@ pdf_files = ["invoice.pdf", "contract.pdf", "receipt.pdf"]
 
 for file_path in pdf_files:
     # Classify document
-    result = await classifier.aclassify_file_path(rules=rules, file_input_path=file_path)
+    result = await classifier.aclassify_file_path(
+        rules=rules, file_input_path=file_path
+    )
     classification = result.items[0].result
-    
+
     print(f"\nProcessing: {file_path}")
     print(f"Type: {classification.type}")
-    
+
     # Route to appropriate extraction schema
     if classification.type == "invoice":
         # Extract with invoice-specific schema
         extractor = LlamaExtract(api_key=api_key)
         data = await extractor.aextract(InvoiceSchema, config, file_path)
         print(f"Invoice data: {data.data}")
-        
+
     elif classification.type == "contract":
         # Extract with contract-specific schema
         extractor = LlamaExtract(api_key=api_key)
