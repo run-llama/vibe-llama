@@ -3,13 +3,18 @@ from rich.console import Console
 
 from .terminal import run_terminal_interface
 from .mcp import mcp_server
-from vibe_llama_core.docs.utils import write_file, get_instructions
+from vibe_llama_core.docs.utils import (
+    write_file,
+    get_instructions,
+    get_claude_code_skills,
+)
 from vibe_llama_core.docs.data import agent_rules, services, LibraryName
 
 
 async def starter(
     agent: Optional[str] = None,
     service: Optional[LibraryName] = None,
+    download_skills: Optional[list[str]] = None,
     overwrite_files: Optional[bool] = None,
     verbose: Optional[bool] = None,
 ) -> bool:
@@ -21,7 +26,7 @@ async def starter(
                 "[bold red]ERROR[/]\tYou need to choose at least one agent and one service before continuining. Exiting..."
             )
             return False
-        agent_files, service_urls, overwrite_files = term_res
+        agent_files, service_urls, download_skills, overwrite_files = term_res
         if agent_files is None or service_urls is None:
             cs.log(
                 "[bold red]ERROR[/]\tYou need to choose at least one agent and one service before continuining. Exiting..."
@@ -62,6 +67,8 @@ async def starter(
     cs.log(
         "[bold green]SUCCESS✅[/]\tAll the instructions files have been written, happy vibe-hacking!"
     )
+    if download_skills:
+        await get_claude_code_skills(download_skills)
     return ".vibe-llama/rules/AGENTS.md" in agent_files
 
 
