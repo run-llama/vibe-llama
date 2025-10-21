@@ -2,7 +2,11 @@ import warnings
 from typing import List, Optional
 from rich.console import Console
 
-from vibe_llama_core.docs.utils import write_file, get_instructions
+from vibe_llama_core.docs.utils import (
+    write_file,
+    get_instructions,
+    get_claude_code_skills,
+)
 from vibe_llama_core.docs.data import (
     LibraryName,
     agent_rules,
@@ -30,6 +34,7 @@ class VibeLlamaStarter:
         self,
         agents: List[str],
         services: List[LibraryName],
+        skills: List[str] = [],
     ) -> None:
         """
         Initialize VibeLlamaStarter.
@@ -40,6 +45,14 @@ class VibeLlamaStarter:
         """
         self.agent_files = [agent_rules[agent] for agent in agents]
         self.service_urls = [service_to_url[service] for service in services]
+        if "Claude Code" not in agents:
+            warnings.warn(
+                "Skills are not available for agents other than Claude Code.",
+                UserWarning,
+            )
+            self.skills: Optional[list[str]] = None
+        else:
+            self.skills = skills
 
     async def write_instructions(
         self,
@@ -99,6 +112,8 @@ class VibeLlamaStarter:
         print_verbose(
             "All the files have been successfully written, happy vibe-hacking!", verbose
         )
+        if self.skills:
+            await get_claude_code_skills(self.skills, overwrite, verbose)
         return None
 
 

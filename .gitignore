@@ -20,6 +20,9 @@ logs/
 .ai_agent_config.json
 generated_workflows/
 .vibe-llama/
+.claude/
+CLAUDE.md
+.github/copilot-instructions.md
 
 # data folder
 data/invoices/

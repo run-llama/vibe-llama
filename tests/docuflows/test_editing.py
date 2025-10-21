@@ -4,7 +4,7 @@ from workflows import Workflow
 from workflows.errors import WorkflowValidationError
 from llama_index.core.llms import MockLLM
 
-from src.vibe_llama.docuflows.editing import DiffEditingWorkflow
+from vibe_llama.docuflows.editing import DiffEditingWorkflow
 
 
 @pytest.fixture()

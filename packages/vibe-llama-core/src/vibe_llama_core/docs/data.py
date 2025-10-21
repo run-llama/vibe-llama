@@ -42,8 +42,8 @@ services: dict[LibraryName, str] = {
 
 claude_code_skills: list[ClaudeCodeSkill] = [
     {"skill_md_url": f"{BASE_URL}/documentation/skills/pdf-processing/SKILL.md", "local_path": ".claude/skills/pdf-processing/", "reference_md_url": f"{BASE_URL}/documentation/skills/pdf-processing/REFERENCE.md", "name": "PDF Parsing"},
-    {"skill_md_url": f"{BASE_URL}/documentation/skills/stuctured-data-extraction/SKILL.md", "reference_md_url": ".claude/skills/structured-data-extraction/", "local_path": f"{BASE_URL}/documentation/skills/structured-data-extraction/REFERENCE.md", "name": "Structured Data Extraction"},
-    {"skill_md_url": f"{BASE_URL}/documentation/skills/information-retrieval/SKILL.md", "local_path": ".claude/skills/information-retrieval", "name": "Information Retrieval"},
-    {"skill_md_url": f"{BASE_URL}/documentation/skills/text-classification/SKILL.md", "reference_md_url": f"{BASE_URL}/documentation/skills/text-classification/REFERENCE.md", "local_path": ".claude/skills/text-classification", "name": "Text Classification"},
-    {"skill_md_url": f"{BASE_URL}/documentation/skills/llamactl/SKILL.md", "reference_md_url": f"{BASE_URL}/documentation/skills/llamactl/REFERENCE.md", "local_path": ".claude/skills/llamactl/", "name": "Llamactl usage"}
+    {"skill_md_url": f"{BASE_URL}/documentation/skills/structured-data-extraction/SKILL.md", "reference_md_url":  f"{BASE_URL}/documentation/skills/structured-data-extraction/REFERENCE.md", "local_path": ".claude/skills/structured-data-extraction/", "name": "Structured Data Extraction"},
+    {"skill_md_url": f"{BASE_URL}/documentation/skills/information-retrieval/SKILL.md", "local_path": ".claude/skills/information-retrieval/", "name": "Information Retrieval"},
+    {"skill_md_url": f"{BASE_URL}/documentation/skills/text-classification/SKILL.md", "reference_md_url": f"{BASE_URL}/documentation/skills/text-classification/REFERENCE.md", "local_path": ".claude/skills/text-classification/", "name": "Text Classification"},
+    {"skill_md_url": f"{BASE_URL}/documentation/skills/llamactl/SKILL.md", "reference_md_url": f"{BASE_URL}/documentation/skills/llamactl/REFERENCE.md", "local_path": ".claude/skills/llamactl/", "name": "Llamactl Usage"}
 ]

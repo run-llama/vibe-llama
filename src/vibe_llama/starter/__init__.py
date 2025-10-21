@@ -68,7 +68,12 @@ async def starter(
         "[bold green]SUCCESS✅[/]\tAll the instructions files have been written, happy vibe-hacking!"
     )
     if download_skills:
-        await get_claude_code_skills(download_skills)
+        if "CLAUDE.md" in agent_files:
+            await get_claude_code_skills(download_skills, overwrite_files, verbose)
+        else:
+            cs.log(
+                "[bold yellow]WARNING:[/]\tSkills are not available for agents other than Claude Code."
+            )
     return ".vibe-llama/rules/AGENTS.md" in agent_files
 
 

@@ -2,7 +2,7 @@ import pytest
 import uuid
 import os
 
-from src.vibe_llama.docuflows.commons import (
+from vibe_llama.docuflows.commons import (
     validate_reference_path,
     validate_uuid,
     validate_workflow_path,

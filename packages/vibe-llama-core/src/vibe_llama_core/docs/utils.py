@@ -47,51 +47,6 @@ async def get_instructions(
             else:
                 return None
 
-async def get_agent_rules(
-    agent: str,
-    service: LibraryName,
-    overwrite_files: Optional[bool] = None,
-    verbose: Optional[bool] = None,
-) -> None:
-    """
-    Get agent rules for a specific agent and library.
-
-    Args:
-        agent (str): Coding agent for which rules should be downloaded
-        service (LibraryName): Service for which rules should be downloaded (LlamaIndex, LlamaIndex Workflows, LlamaCloud Services)
-        overwrite_files (Optional[bool]): Whether or not to overwrite existing rule files.
-        verbose (Optional[bool]): Enable verbose logging.
-    """
-    agent_files = [agent_rules[agent]]
-    service_urls = [services[service]]
-    instructions = ""
-    for serv_url in service_urls:
-        if verbose:
-            print(f"FETCHING\t{serv_url}")
-        instr = await get_instructions(instructions_url=serv_url)
-        if instr is None:
-            print(
-                f"WARNING\tIt was not possible to retrieve instructions for {serv_url}, please try again later"
-            )
-            continue
-        instructions += instr + "\n\n---\n\n"
-        if verbose:
-            print("FETCHED✅")
-    if not instructions:
-        raise ValueError(
-            "It was not possible to retrieve instructions at this time, please try again later"
-        )
-    for fl in agent_files:
-        if verbose:
-            print(f"WRITING\t{fl}")
-        write_file(fl, instructions, overwrite_files or False, ", ".join(service_urls))
-        if verbose:
-            print("WRITTEN✅")
-    print(
-        "SUCCESS✅\tAll the instructions files have been written, happy vibe-hacking!"
-    )
-    return None
-
 async def get_claude_code_skills(
     skills: list[str],
     overwrite_files: Optional[bool] = None,
@@ -150,4 +105,52 @@ async def get_claude_code_skills(
         print(
             "SUCCESS✅\tSkills files have been written, happy vibe-hacking!"
         )
+    return None
+
+async def get_agent_rules(
+    agent: str,
+    service: LibraryName,
+    skills: list[str] = [],
+    overwrite_files: Optional[bool] = None,
+    verbose: Optional[bool] = None,
+) -> None:
+    """
+    Get agent rules for a specific agent and library.
+
+    Args:
+        agent (str): Coding agent for which rules should be downloaded
+        service (LibraryName): Service for which rules should be downloaded (LlamaIndex, LlamaIndex Workflows, LlamaCloud Services)
+        overwrite_files (Optional[bool]): Whether or not to overwrite existing rule files.
+        verbose (Optional[bool]): Enable verbose logging.
+    """
+    agent_files = [agent_rules[agent]]
+    service_urls = [services[service]]
+    instructions = ""
+    for serv_url in service_urls:
+        if verbose:
+            print(f"FETCHING\t{serv_url}")
+        instr = await get_instructions(instructions_url=serv_url)
+        if instr is None:
+            print(
+                f"WARNING\tIt was not possible to retrieve instructions for {serv_url}, please try again later"
+            )
+            continue
+        instructions += instr + "\n\n---\n\n"
+        if verbose:
+            print("FETCHED✅")
+    if not instructions:
+        raise ValueError(
+            "It was not possible to retrieve instructions at this time, please try again later"
+        )
+    for fl in agent_files:
+        if verbose:
+            print(f"WRITING\t{fl}")
+        write_file(fl, instructions, overwrite_files or False, ", ".join(service_urls))
+        if verbose:
+            print("WRITTEN✅")
+    print(
+        "SUCCESS✅\tAll the instructions files have been written, happy vibe-hacking!"
+    )
+    if skills and agent == "Claude Code":
+        await get_claude_code_skills(skills, overwrite_files, verbose)
     return None

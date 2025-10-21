@@ -1,6 +1,6 @@
 from llama_index.core.tools import FunctionTool
 
-from src.vibe_llama.docuflows.tools import create_agent_tools
+from vibe_llama.docuflows.tools import create_agent_tools
 
 
 def test_create_agent_tools() -> None:

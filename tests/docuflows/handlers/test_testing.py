@@ -6,10 +6,10 @@ from workflows import Context
 from workflows.context.state_store import InMemoryStateStore
 from workflows.events import InputRequiredEvent
 
-from src.vibe_llama.docuflows.agent.utils import AgentConfig
-from src.vibe_llama.docuflows.commons.typed_state import WorkflowState
-from src.vibe_llama.docuflows.agent import LlamaVibeWorkflow
-from src.vibe_llama.docuflows.handlers.workflow_testing import (
+from vibe_llama.docuflows.agent.utils import AgentConfig
+from vibe_llama.docuflows.commons.typed_state import WorkflowState
+from vibe_llama.docuflows.agent import LlamaVibeWorkflow
+from vibe_llama.docuflows.handlers.workflow_testing import (
     handle_test_file_input,
     handle_test_file_selection,
     handle_test_file_validation,
