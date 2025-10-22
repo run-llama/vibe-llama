@@ -74,6 +74,22 @@ Use the `-v`/`--verbose` flag (independently from TUI or CLI) if you want verbos
 
 Use the `-w`/`--overwrite` flag (works only from CLI) if you want to overwrite local files with the incoming ones downloaded by `vibe-llama starter`. On the TUI, you will be prompted to choose whether you want to overwrite existing files or not.
 
+If you choose Claude Code as your coding agent, you can also use the `--skill` flag (also repeated multiple times) to download one or more of the [available skills](./documentation/skills/):
+
+- PDF processing with LlamaParse
+- Structured data extraction with LlamaExtract
+- Documents classification with LlamaClassify
+- Information retrieval with LlamaCloud Index
+- Bootstrapping, serving, deploying and managing workflows with llamactl
+
+On the TUI, you will be asked for what skills you want to download.
+
+> [!IMPORTANT]
+>
+> Skills are meant to be customized, expanded and adapted to your own use case: you can build upon them and extend them to expand Claude Code's capabilities, even beyond our pre-set of rules.
+>
+> _Find out more about skills [on Claude Code documentation](https://docs.claude.com/en/docs/claude-code/skills)_
+
 With `starter`, you can also launch a local MCP server (at http://127.0.0.1:8000/mcp) using the `-m`/`--mcp` flag. This server exposes a tool (`get_relevant_context`) that allows you to retrieve relevant documentation content based on a specific query. If you are interested in interacting with vibe-llama MCP programmatically, you can check the [SDK guide](#vibellamamcpclient).
 
 **Example usage**

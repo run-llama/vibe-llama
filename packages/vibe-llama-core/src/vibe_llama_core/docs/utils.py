@@ -1,4 +1,5 @@
 import os
+import warnings
 import httpx
 import asyncio
 
@@ -153,4 +154,6 @@ async def get_agent_rules(
     )
     if skills and agent == "Claude Code":
         await get_claude_code_skills(skills, overwrite_files, verbose)
+    elif skills and agent != "Claude Code":
+        warnings.warn("Skills are not available for agents other than Claude Code.", UserWarning)
     return None
