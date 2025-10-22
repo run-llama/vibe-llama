@@ -13,7 +13,7 @@ dev = [
 
 [project]
 name = "vibe-llama-core"
-version = "0.1.1"
+version = "0.1.1.post1"
 description = "vibe-llama-core is a reduced version of vibe-llama containing only the code for downloading documentation and templates."
 readme = "README.md"
 requires-python = ">=3.10"
