@@ -8,9 +8,9 @@ from llama_index.core.llms import MockLLM, ChatMessage
 from llama_index.core.tools import FunctionTool, BaseTool
 from typing import List, Sequence, Any
 
-from src.vibe_llama.docuflows.commons.typed_state import WorkflowState
-from src.vibe_llama.docuflows.agent import LlamaVibeWorkflow
-from src.vibe_llama.docuflows.agent.utils import handle_slash_command, handle_chat
+from vibe_llama.docuflows.commons.typed_state import WorkflowState
+from vibe_llama.docuflows.agent import LlamaVibeWorkflow
+from vibe_llama.docuflows.agent.utils import handle_slash_command, handle_chat
 
 
 class MockLLMWithTools(MockLLM):

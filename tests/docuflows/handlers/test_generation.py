@@ -5,11 +5,11 @@ from workflows import Context
 from workflows.context.state_store import InMemoryStateStore
 from workflows.events import InputRequiredEvent
 
-from src.vibe_llama.docuflows.agent.utils import AgentConfig
-from src.vibe_llama.docuflows.commons.typed_state import WorkflowState
-from src.vibe_llama.docuflows.commons.core import DocumentComplexityAssessment
-from src.vibe_llama.docuflows.agent import LlamaVibeWorkflow
-from src.vibe_llama.docuflows.handlers.workflow_generation import (
+from vibe_llama.docuflows.agent.utils import AgentConfig
+from vibe_llama.docuflows.commons.typed_state import WorkflowState
+from vibe_llama.docuflows.commons.core import DocumentComplexityAssessment
+from vibe_llama.docuflows.agent import LlamaVibeWorkflow
+from vibe_llama.docuflows.handlers.workflow_generation import (
     assess_document_complexity,
     handle_folder_name_input,
     handle_generate_workflow,

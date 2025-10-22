@@ -1,9 +1,11 @@
 import pytest
 import os
 from pathlib import Path
+from unittest.mock import patch, AsyncMock
 
-from src.vibe_llama.sdk import VibeLlamaStarter
-from vibe_llama_core.docs.data import agent_rules, services
+from typing import Any
+from vibe_llama.sdk import VibeLlamaStarter
+from vibe_llama_core.docs.data import agent_rules, services, claude_code_skills
 
 
 def test_init() -> None:
@@ -18,12 +20,29 @@ def test_init() -> None:
     ]
 
 
+async def mock_write_skills(skills: list[str], *args: Any, **kwargs: Any) -> None:
+    for i in skills:
+        for j in claude_code_skills:
+            if j["name"] == i:
+                os.makedirs(j["local_path"], exist_ok=True)
+                Path(j["local_path"] + "SKILL.md").touch()
+                if "reference_md_url" in j:
+                    Path(j["local_path"] + "REFERENCE.md").touch()
+    return None
+
+
 @pytest.mark.asyncio
-async def test_write_instructions(tmp_path: Path) -> None:
-    starter = VibeLlamaStarter(
-        agents=["GitHub Copilot", "Cursor"],
-        services=["LlamaIndex", "llama-index-workflows"],
-    )
+@patch("vibe_llama.sdk.base.get_claude_code_skills", new_callable=AsyncMock)
+async def test_write_instructions(mock: AsyncMock, tmp_path: Path) -> None:
+    mock.side_effect = mock_write_skills
+    with pytest.warns(
+        UserWarning, match="Skills are not available for agents other than Claude Code."
+    ):
+        starter = VibeLlamaStarter(
+            agents=["GitHub Copilot", "Cursor"],
+            services=["LlamaIndex", "llama-index-workflows"],
+            skills=["PDF Parsing"],
+        )
     os.chdir(tmp_path)
     await starter.write_instructions()
     assert (tmp_path / agent_rules["GitHub Copilot"]).is_file()
@@ -35,3 +54,24 @@ async def test_write_instructions(tmp_path: Path) -> None:
     await starter.write_instructions(overwrite=True)
     assert prev_sz_cur == (tmp_path / agent_rules["Cursor"]).stat().st_size
     assert prev_sz_gh == (tmp_path / agent_rules["GitHub Copilot"]).stat().st_size
+    assert not (tmp_path / ".claude/skills/pdf-processing/SKILL.md").exists()
+    assert not (tmp_path / ".claude/skills/pdf-processing/REFERENCE.md").exists()
+    mock.assert_not_called()
+
+
+@pytest.mark.asyncio
+@patch("vibe_llama.sdk.base.get_claude_code_skills", new_callable=AsyncMock)
+async def test_write_instructions_claude_skills(
+    mock: AsyncMock, tmp_path: Path
+) -> None:
+    mock.side_effect = mock_write_skills
+    starter = VibeLlamaStarter(
+        agents=["Claude Code"],
+        services=["LlamaIndex", "llama-index-workflows"],
+        skills=["PDF Parsing"],
+    )
+    os.chdir(tmp_path)
+    await starter.write_instructions()
+    assert (tmp_path / ".claude/skills/pdf-processing/SKILL.md").exists()
+    assert (tmp_path / ".claude/skills/pdf-processing/REFERENCE.md").exists()
+    mock.assert_called()

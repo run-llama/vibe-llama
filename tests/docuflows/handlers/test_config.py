@@ -4,10 +4,10 @@ from workflows import Context
 from workflows.context.state_store import InMemoryStateStore
 from workflows.events import InputRequiredEvent
 
-from src.vibe_llama.docuflows.agent.utils import AgentConfig
-from src.vibe_llama.docuflows.commons.typed_state import WorkflowState
-from src.vibe_llama.docuflows.agent import LlamaVibeWorkflow
-from src.vibe_llama.docuflows.handlers.workflow_config import (
+from vibe_llama.docuflows.agent.utils import AgentConfig
+from vibe_llama.docuflows.commons.typed_state import WorkflowState
+from vibe_llama.docuflows.agent import LlamaVibeWorkflow
+from vibe_llama.docuflows.handlers.workflow_config import (
     handle_configuration,
     handle_reconfigure,
     handle_show_config,

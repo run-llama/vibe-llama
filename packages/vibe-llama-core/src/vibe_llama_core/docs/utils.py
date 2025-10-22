@@ -1,11 +1,12 @@
 import os
+import warnings
 import httpx
 import asyncio
 
 from typing import Optional
 from pathlib import Path
 from vibe_llama_core.constants import CHUNKS_SEPARATOR
-from .data import services, agent_rules, LibraryName
+from .data import services, agent_rules, LibraryName, claude_code_skills
 
 def write_file(
     file_path: str, content: str, overwrite_file: bool, service_url: str
@@ -47,9 +48,70 @@ async def get_instructions(
             else:
                 return None
 
+async def get_claude_code_skills(
+    skills: list[str],
+    overwrite_files: Optional[bool] = None,
+    verbose: Optional[bool] = None
+) -> None:
+    """
+    Get a set of Claude Code skills.
+
+    Args:
+        skills (list[str]): List of skill names
+        overwrite_files (Optional[bool]): Whether or not to overwrite existing rule files.
+        verbose (Optional[bool]): Enable verbose logging.
+    """
+    success = 0
+    for skill in skills:
+        for cl_skill in claude_code_skills:
+            if cl_skill["name"] == skill:
+                if verbose:
+                    print(f"FETCHING\t{cl_skill['skill_md_url']}")
+                instr = await get_instructions(instructions_url=cl_skill['skill_md_url'])
+                if instr is None:
+                    print(
+                        f"WARNING\tIt was not possible to retrieve instructions for {cl_skill['skill_md_url']}, please try again later"
+                    )
+                    continue
+                if verbose:
+                    print("FETCHED✅")
+                if verbose:
+                    print(f"WRITING\t{cl_skill['local_path']+'SKILL.md'}")
+                write_file(cl_skill["local_path"]+"SKILL.md", instr, overwrite_files or False, '')
+                if verbose:
+                    print("WRITTEN✅")
+                success+=1
+                if "reference_md_url" in cl_skill:
+                    if verbose:
+                        print(f"FETCHING\t{cl_skill['reference_md_url']}")
+                    instr = await get_instructions(instructions_url=cl_skill['reference_md_url'])
+                    if instr is None:
+                        print(
+                            f"WARNING\tIt was not possible to retrieve instructions for {cl_skill['reference_md_url']}, please try again later"
+                        )
+                        continue
+                    if verbose:
+                        print("FETCHED✅")
+                    if verbose:
+                        print(f"WRITING\t{cl_skill['local_path']+'REFERENCE.md'}")
+                    write_file(cl_skill["local_path"]+"REFERENCE.md", instr, overwrite_files or False, '')
+                    if verbose:
+                        print("WRITTEN✅")
+                    success+=1
+    if success == 0:
+        print(
+            "ERROR❌\tNo skill file could be written"
+        )
+    else:
+        print(
+            "SUCCESS✅\tSkills files have been written, happy vibe-hacking!"
+        )
+    return None
+
 async def get_agent_rules(
     agent: str,
     service: LibraryName,
+    skills: list[str] = [],
     overwrite_files: Optional[bool] = None,
     verbose: Optional[bool] = None,
 ) -> None:
@@ -90,4 +152,8 @@ async def get_agent_rules(
     print(
         "SUCCESS✅\tAll the instructions files have been written, happy vibe-hacking!"
     )
+    if skills and agent == "Claude Code":
+        await get_claude_code_skills(skills, overwrite_files, verbose)
+    elif skills and agent != "Claude Code":
+        warnings.warn("Skills are not available for agents other than Claude Code.", UserWarning)
     return None

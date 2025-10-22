@@ -1,4 +1,4 @@
-from src.vibe_llama.scaffold.terminal import app1, app2
+from vibe_llama.scaffold.terminal import app1, app2
 from prompt_toolkit.application import Application
 
 

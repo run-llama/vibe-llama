@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from rich.console import Console
 
-from src.vibe_llama.sdk import VibeLlamaScaffold
+from vibe_llama.sdk import VibeLlamaScaffold
 
 
 def test_init() -> None:

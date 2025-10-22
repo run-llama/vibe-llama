@@ -8,9 +8,9 @@ from workflows import Context
 from workflows.context.state_store import InMemoryStateStore
 from llama_index.core.llms import MockLLM
 
-from src.vibe_llama.docuflows.agent import LlamaVibeWorkflow
-from src.vibe_llama.docuflows.commons.typed_state import WorkflowState
-from src.vibe_llama.docuflows.commons.core import (
+from vibe_llama.docuflows.agent import LlamaVibeWorkflow
+from vibe_llama.docuflows.commons.typed_state import WorkflowState
+from vibe_llama.docuflows.commons.core import (
     _send_event,
     load_context_files,
     load_reference_files,

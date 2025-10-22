@@ -9,7 +9,7 @@ from .docuflows import run_cli
 from .logo import print_logo
 from .scaffold import run_scaffold_interface
 from vibe_llama_core.templates import download_template, PROJECTS
-from vibe_llama_core.docs import agent_rules, services
+from vibe_llama_core.docs import agent_rules, services, claude_code_skills
 
 
 def main() -> None:
@@ -82,6 +82,15 @@ def main() -> None:
         default=False,
     )
 
+    starter_parser.add_argument(
+        "--skill",
+        action="append",
+        help="Add a skill (can be specified multiple times)",
+        choices=[skill["name"] for skill in claude_code_skills],
+        required=False,
+        default=[],
+    )
+
     scaffold_parser.add_argument(
         "-u",
         "--use_case",
@@ -105,7 +114,9 @@ def main() -> None:
         print_logo()
         if not args.mcp:
             t = asyncio.run(
-                starter(args.agent, args.service, args.overwrite, args.verbose)
+                starter(
+                    args.agent, args.service, args.skill, args.overwrite, args.verbose
+                )
             )
             if t:
                 start_docuflows = console.input(
