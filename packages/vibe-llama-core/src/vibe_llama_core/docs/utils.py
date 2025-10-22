@@ -149,9 +149,6 @@ async def get_agent_rules(
         write_file(fl, instructions, overwrite_files or False, ", ".join(service_urls))
         if verbose:
             print("WRITTEN✅")
-    print(
-        "SUCCESS✅\tAll the instructions files have been written, happy vibe-hacking!"
-    )
     if skills and agent == "Claude Code":
         await get_claude_code_skills(skills, overwrite_files, verbose)
     elif skills and agent != "Claude Code":
