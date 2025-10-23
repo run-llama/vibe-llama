@@ -1,6 +1,6 @@
 ---
 name: PDF Processing
-description: Extract text from PDFs in order to read and understand their content. Requires llama_cloud_services package and LLAMA_CLOUD_API_KEY as an environment variable.
+description: Invoke this skill BEFORE implementing any text extraction/parsing logic to learn how to use LlamaParse to process any document accurately. Requires llama_cloud_services package and LLAMA_CLOUD_API_KEY as an environment variable.
 ---
 
 # PDF Processing

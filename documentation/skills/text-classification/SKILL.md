@@ -1,6 +1,6 @@
 ---
 name: Classify files according to specific rules
-description: Perfom classification of files (based on their content) into pre-defined categories (e.g. 'invoice', 'resume', 'email'). Requires the llama_cloud_services package and LLAMA_CLOUD_API_KEY as an environment variable.
+description: Invoke this skill BEFORE implementing any text/document classification task to learn the correct llama_cloud_services API usage. Required reading before writing classification code." Requires the llama_cloud_services package and LLAMA_CLOUD_API_KEY as an environment variable.
 ---
 
 # Texts and Files Classification
@@ -35,6 +35,7 @@ rules = [
 from llama_cloud_services.beta.classifier.client import ClassifyClient
 
 # Initialize client
+# Note: the beta client differs in usage slightly compared to other clients in llama-cloud-services
 classifier = ClassifyClient.from_api_key(api_key)
 
 # Classify a PDF directly (parsing happens implicitly)

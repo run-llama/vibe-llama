@@ -32,7 +32,6 @@ extract_config = ExtractConfig(
     extraction_target=ExtractTarget.PER_DOC,  # PER_DOC, PER_PAGE
     system_prompt="<Insert relevant context for extraction>",  # set system prompt - can leave blank
     # Advanced options
-    chunk_mode=ChunkMode.PAGE,  # PAGE, SECTION
     high_resolution_mode=True,  # Enable for better OCR
     nvalidate_cache=False,  # Set to True to bypass cache
     # Extensions
@@ -43,7 +42,7 @@ extract_config = ExtractConfig(
 
 # Extract data directly from document - no agent needed!
 result = extractor.extract(Resume, config, "resume.pdf")
-print(result.data)
+print(Resume.model_validate(result.data))
 ```
 
 ### Supported File Types
@@ -207,7 +206,7 @@ be sufficient for a wide variety of use-cases.
 Configure how extraction is performed using `ExtractConfig`. The schema is the most important part, but several configuration options can significantly impact the extraction process.
 
 ```python
-from llama_cloud import ExtractConfig, ExtractMode, ChunkMode, ExtractTarget
+from llama_cloud import ExtractConfig, ExtractMode, ExtractTarget
 
 # Basic configuration
 config = ExtractConfig(
@@ -220,7 +219,6 @@ config = ExtractConfig(
 # Advanced configuration
 advanced_config = ExtractConfig(
     extraction_mode=ExtractMode.MULTIMODAL,
-    chunk_mode=ChunkMode.PAGE,  # PAGE, SECTION
     high_resolution_mode=True,  # Better OCR accuracy
     invalidate_cache=False,  # Bypass cached results
     cite_sources=True,  # Enable source citations
@@ -247,7 +245,6 @@ advanced_config = ExtractConfig(
 
 - `system_prompt`: Additional system-level instructions
 - `page_range`: Specific pages to extract (e.g., "1,3,5-7,9")
-- `chunk_mode`: Document splitting strategy (`PAGE` or `SECTION`)
 - `high_resolution_mode`: Better OCR for small text (slower processing)
 
 **Extensions** (return additional metadata):
@@ -290,7 +287,7 @@ agent = extractor.create_agent(
 
 # Use the agent
 result = agent.extract("resume.pdf")
-print(result.data)
+print(Resume.model_validate(result.data))
 ```
 
 ### Agent Batch Processing
