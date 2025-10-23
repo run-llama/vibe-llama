@@ -1,6 +1,6 @@
 ---
 name: Extract structured data from unstructured files (PDF, PPTX, DOCX...)
-description: Extract structured data from PDFs and other unstructured file types in order to get the most relevant information from them. Requires llama_cloud_services package and LLAMA_CLOUD_API_KEY as an environment variable.
+description: Invoke this skill BEFORE implementing any structured data extraction from documents to learn the correct llama_cloud_services API usage. Required reading before writing extraction code. Requires llama_cloud_services package and LLAMA_CLOUD_API_KEY as an environment variable.
 ---
 
 # Structured Data Extraction
@@ -19,6 +19,8 @@ class Resume(BaseModel):
     skills: list[str] = Field(description="Technical skills and technologies")
 ```
 
+**NOTE:** Use basic types when possible. Avoid nested dictionaries. Lists are ok.
+
 - Create a LlamaExtract instance:
 
 ```python
@@ -28,6 +30,8 @@ from llama_cloud_services import LlamaExtract
 extractor = LlamaExtract(
     show_progress=True,
     check_interval=5,
+    # Optional API key, else reads from env
+    # api_key=os.environ.get("LLAMA_CLOUD_API_KEY"),
 )
 ```
 
@@ -43,7 +47,6 @@ extract_config = ExtractConfig(
     extraction_target=ExtractTarget.PER_DOC,  # PER_DOC, PER_PAGE
     system_prompt="<Insert relevant context for extraction>",  # set system prompt - can leave blank
     # Advanced options
-    chunk_mode=ChunkMode.PAGE,  # PAGE, SECTION
     high_resolution_mode=True,  # Enable for better OCR
     nvalidate_cache=False,  # Set to True to bypass cache
     # Extensions
@@ -57,7 +60,9 @@ extract_config = ExtractConfig(
 
 ```python
 result = extractor.extract(Resume, config, "resume.pdf")
-print(result.data)
+
+# result.data has our model as a python dict
+print(Resume.model_validate(result.data))
 ```
 
 For more detailed code implementations, see [REFERENCE.md](REFERENCE.md).
