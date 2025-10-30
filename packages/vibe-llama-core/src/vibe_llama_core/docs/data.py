@@ -47,3 +47,21 @@ claude_code_skills: list[ClaudeCodeSkill] = [
     {"skill_md_url": f"{BASE_URL}/documentation/skills/text-classification/SKILL.md", "reference_md_url": f"{BASE_URL}/documentation/skills/text-classification/REFERENCE.md", "local_path": ".claude/skills/text-classification/", "name": "Text Classification"},
     {"skill_md_url": f"{BASE_URL}/documentation/skills/llamactl/SKILL.md", "reference_md_url": f"{BASE_URL}/documentation/skills/llamactl/REFERENCE.md", "local_path": ".claude/skills/llamactl/", "name": "Llamactl Usage"}
 ]
+
+mcp_config = {
+  "mcpServers": {
+    "vibe-llama": {
+      "type": "http",
+      "command": "vibe-llama",
+      "args": [
+        "starter",
+        "--mcp",
+      ],
+      "env": {}
+    },
+    "llama-index-docs": {
+      "type": "http",
+      "url": "https://developers.llamaindex.ai/mcp"
+    }
+  }
+}

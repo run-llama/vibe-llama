@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import patch, AsyncMock
 
 from typing import Any
-from vibe_llama_core.docs.utils import write_file, get_instructions
+from vibe_llama_core.docs.utils import write_file, get_instructions, write_mcp_config
 from vibe_llama_core.docs import services, get_agent_rules, claude_code_skills
 
 @pytest.mark.asyncio
@@ -29,6 +29,27 @@ def test_write_file(tmp_path: Path) -> None:
     with open(fl) as f:
         content = f.read()
     assert content == "hello world\n"
+
+def test_write_mcp_config(tmp_path: Path) -> None:
+    cwd = Path.cwd()
+    os.chdir(tmp_path)
+    write_mcp_config(None, True)
+    assert (tmp_path / ".mcp.json").exists()
+    with pytest.raises(FileExistsError):
+        write_mcp_config(None, False)
+    os.makedirs(tmp_path / "test")
+    with pytest.warns(UserWarning):
+        write_mcp_config(str(tmp_path / "test"), True)
+    assert (tmp_path / "test" / ".mcp.json").exists()
+    write_mcp_config(str(tmp_path / "test1"), True)
+    assert (tmp_path / "test1" / ".mcp.json").exists()
+    write_mcp_config(str(tmp_path / "test2"), False)
+    assert (tmp_path / "test2" / ".mcp.json").exists()
+    write_mcp_config(str(tmp_path / "test3" / "mcp.json"), True)
+    assert (tmp_path / "test3" / "mcp.json").exists()
+    write_mcp_config(str(tmp_path / "mcp.json"), False)
+    assert (tmp_path / "mcp.json").exists()
+    os.chdir(cwd)
 
 @pytest.mark.asyncio
 async def test_get_agent_rules() -> None:
@@ -94,3 +115,13 @@ async def test_get_agent_rules_skills(mock: AsyncMock) -> None:
         ".claude/skills/pdf-processing/REFERENCE.md",
     ]:
         os.remove(path)
+
+@pytest.mark.asyncio
+async def test_get_agent_rules_mcp_config() -> None:
+    await get_agent_rules("Claude Code", "llama-index-workflows", [], True, None, True)
+    assert Path(".mcp.json").exists()
+    with pytest.raises(FileExistsError):
+        await get_agent_rules("Claude Code", "llama-index-workflows", [], True, None, False)
+    os.remove(".mcp.json")
+    await get_agent_rules("Claude Code", "llama-index-workflows", [], False, "mcp.json", True)
+    assert not Path("mcp.json").exists()

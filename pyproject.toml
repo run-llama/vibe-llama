@@ -13,12 +13,12 @@ dev = [
 
 [project]
 name = "vibe-llama"
-version = "0.4.7.post1"
+version = "0.5.0"
 description = "vibe-llama is a set of tools that are designed to help developers build working and reliable applications with LlamaIndex, LlamaCloud Services and llama-index-workflows."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "vibe-llama-core>=0.1.1.post1",
+  "vibe-llama-core>=0.2.0",
   "bm25s>=0.2.13",
   "fastmcp>=2.11.3",
   "llama-cloud-services>=0.6.62",

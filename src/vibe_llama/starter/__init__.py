@@ -7,6 +7,7 @@ from vibe_llama_core.docs.utils import (
     write_file,
     get_instructions,
     get_claude_code_skills,
+    write_mcp_config,
 )
 from vibe_llama_core.docs.data import agent_rules, services, LibraryName
 
@@ -15,6 +16,8 @@ async def starter(
     agent: Optional[str] = None,
     service: Optional[LibraryName] = None,
     download_skills: Optional[list[str]] = None,
+    allow_mcp_config: Optional[bool] = None,
+    mcp_config_path: Optional[str] = None,
     overwrite_files: Optional[bool] = None,
     verbose: Optional[bool] = None,
 ) -> bool:
@@ -26,7 +29,14 @@ async def starter(
                 "[bold red]ERROR[/]\tYou need to choose at least one agent and one service before continuining. Exiting..."
             )
             return False
-        agent_files, service_urls, download_skills, overwrite_files = term_res
+        (
+            agent_files,
+            service_urls,
+            download_skills,
+            overwrite_files,
+            allow_mcp_config,
+            mcp_config_path,
+        ) = term_res
         if agent_files is None or service_urls is None:
             cs.log(
                 "[bold red]ERROR[/]\tYou need to choose at least one agent and one service before continuining. Exiting..."
@@ -74,6 +84,8 @@ async def starter(
             cs.log(
                 "[bold yellow]WARNING:[/]\tSkills are not available for agents other than Claude Code."
             )
+    if allow_mcp_config:
+        write_mcp_config(mcp_config_path, overwrite_files)
     return ".vibe-llama/rules/AGENTS.md" in agent_files
 
 

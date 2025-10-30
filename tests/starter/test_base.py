@@ -5,7 +5,7 @@ from unittest.mock import patch, AsyncMock
 
 from typing import Any
 from vibe_llama.starter import starter
-from vibe_llama.starter.terminal import app1, app2, app3, app2a
+from vibe_llama.starter.terminal import app1, app2, app3, app2a, app3a, app4
 from prompt_toolkit.application import Application
 from vibe_llama_core.docs import claude_code_skills
 
@@ -89,8 +89,32 @@ async def test_starter_skills_not_claude(mock: AsyncMock) -> None:
     mock.assert_not_called()
 
 
+@pytest.mark.asyncio
+async def test_starter_mcp_config(tmp_path: Path) -> None:
+    cwd = Path.cwd()
+    os.chdir(tmp_path)
+    await starter(
+        agent="Claude Code", service="llama-index-workflows", allow_mcp_config=True
+    )
+    assert (tmp_path / ".mcp.json").exists()
+    with pytest.raises(FileExistsError):
+        await starter(
+            agent="Claude Code", service="llama-index-workflows", allow_mcp_config=True
+        )
+    await starter(
+        agent="Claude Code",
+        service="llama-index-workflows",
+        allow_mcp_config=False,
+        mcp_config_path="mcp.json",
+    )
+    assert not (tmp_path / "mcp.json").exists()
+    os.chdir(cwd)
+
+
 def test_terminal_apps() -> None:
     assert isinstance(app1, Application)
     assert isinstance(app2, Application)
     assert isinstance(app3, Application)
+    assert isinstance(app3a, Application)
     assert isinstance(app2a, Application)
+    assert isinstance(app4, Application)

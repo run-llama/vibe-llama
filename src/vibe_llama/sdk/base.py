@@ -6,6 +6,7 @@ from vibe_llama_core.docs.utils import (
     write_file,
     get_instructions,
     get_claude_code_skills,
+    write_mcp_config,
 )
 from vibe_llama_core.docs.data import (
     LibraryName,
@@ -35,16 +36,23 @@ class VibeLlamaStarter:
         agents: List[str],
         services: List[LibraryName],
         skills: List[str] = [],
+        allow_mcp_config: bool = False,
+        mcp_config_path: Optional[str] = None,
     ) -> None:
         """
         Initialize VibeLlamaStarter.
 
         Args:
             agents (List[str]): List of coding agents to write instructions for.
-            services ( List[LibraryName]): List of services to fetch instructions from.
+            services (List[LibraryName]): List of services to fetch instructions from.
+            skills (List[str]): List of skills to download. Only applies if "Claude Code" is among the chosen agents.
+            allow_mcp_config (bool): Whether or not to download a general MCP configuration for your coding agent.
+            mcp_config_path (Optional[str]): Path to the MCP configuration. Only applies if `allow_mcp_config` is set to True.
         """
         self.agent_files = [agent_rules[agent] for agent in agents]
         self.service_urls = [service_to_url[service] for service in services]
+        self.allow_mcp_config = allow_mcp_config
+        self.mcp_config_path = mcp_config_path
         if "Claude Code" not in agents:
             warnings.warn(
                 "Skills are not available for agents other than Claude Code.",
@@ -114,6 +122,8 @@ class VibeLlamaStarter:
         )
         if self.skills:
             await get_claude_code_skills(self.skills, overwrite, verbose)
+        if self.allow_mcp_config:
+            write_mcp_config(self.mcp_config_path, overwrite)
         return None
 
 
