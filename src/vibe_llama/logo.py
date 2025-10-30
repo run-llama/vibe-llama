@@ -15,7 +15,7 @@ def print_logo() -> None:
     cs = Console()
     print("\n")
     cs.print(
-        Text(logo, colors=["#F8E9D8", "#FFA6EA", "#45DFF8", "#BB8DEB"]),
+        Text(logo, colors=["#4B72FE", "#FF8DF2", "#FF8705"]),
         justify="center",
     )
     print("\n")

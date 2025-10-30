@@ -23,6 +23,8 @@ generated_workflows/
 .claude/
 CLAUDE.md
 .github/copilot-instructions.md
+.mcp.json
+AGENTS.md
 
 # data folder
 data/invoices/

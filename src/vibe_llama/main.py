@@ -74,6 +74,21 @@ def main() -> None:
     )
 
     starter_parser.add_argument(
+        "--allow_mcp_config",
+        action="store_true",
+        help="Allow downloading an MCP config for your coding agent",
+        required=False,
+        default=False,
+    )
+
+    starter_parser.add_argument(
+        "--mcp_config_path",
+        help="Path to write the downloaded MCP configuration to. Only works in combination with --allow-mcp-config. Defaults to .mcp.json",
+        required=False,
+        default=None,
+    )
+
+    starter_parser.add_argument(
         "-w",
         "--overwrite",
         action="store_true",
@@ -115,7 +130,13 @@ def main() -> None:
         if not args.mcp:
             t = asyncio.run(
                 starter(
-                    args.agent, args.service, args.skill, args.overwrite, args.verbose
+                    args.agent,
+                    args.service,
+                    args.skill,
+                    args.allow_mcp_config,
+                    args.mcp_config_path,
+                    args.overwrite,
+                    args.verbose,
                 )
             )
             if t:

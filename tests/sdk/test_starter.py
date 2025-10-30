@@ -70,8 +70,30 @@ async def test_write_instructions_claude_skills(
         services=["LlamaIndex", "llama-index-workflows"],
         skills=["PDF Parsing"],
     )
+    cwd = Path.cwd()
     os.chdir(tmp_path)
     await starter.write_instructions()
     assert (tmp_path / ".claude/skills/pdf-processing/SKILL.md").exists()
     assert (tmp_path / ".claude/skills/pdf-processing/REFERENCE.md").exists()
     mock.assert_called()
+    os.chdir(cwd)
+
+
+@pytest.mark.asyncio
+async def test_write_instructions_mcp_config(tmp_path: Path) -> None:
+    starter = VibeLlamaStarter(
+        agents=["Claude Code"],
+        services=["llama-index-workflows"],
+        allow_mcp_config=True,
+    )
+    cwd = Path.cwd()
+    os.chdir(tmp_path)
+    await starter.write_instructions()
+    assert (tmp_path / ".mcp.json").exists()
+    with pytest.raises(FileExistsError):
+        await starter.write_instructions()
+    starter.mcp_config_path = "mcp.json"
+    starter.allow_mcp_config = False
+    await starter.write_instructions()
+    assert not (tmp_path / "mcp.json").exists()
+    os.chdir(cwd)

@@ -3245,7 +3245,7 @@ wheels = [
 
 [[package]]
 name = "vibe-llama"
-version = "0.4.6"
+version = "0.5.0"
 source = { editable = "." }
 dependencies = [
     { name = "bm25s" },
@@ -3298,7 +3298,7 @@ dev = [
 
 [[package]]
 name = "vibe-llama-core"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "packages/vibe-llama-core" }
 dependencies = [
     { name = "copier" },

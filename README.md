@@ -90,6 +90,8 @@ On the TUI, you will be asked for what skills you want to download.
 >
 > _Find out more about skills [on Claude Code documentation](https://docs.claude.com/en/docs/claude-code/skills)_
 
+If you provide the `--allow_mcp_config` option, you will also download a generic MCP configuration (supported natively by Claude Code and Cursor), that will give you access to the local MCP provided by vibe-llama and to the general MCP provided by LlamaIndex over the entire documentation. This configuration can be easily adapted to other coding agents and can be saved to a specific path by providing the `--mcp_config_path` option (the default is `.mcp.json`).
+
 With `starter`, you can also launch a local MCP server (at http://127.0.0.1:8000/mcp) using the `-m`/`--mcp` flag. This server exposes a tool (`get_relevant_context`) that allows you to retrieve relevant documentation content based on a specific query. If you are interested in interacting with vibe-llama MCP programmatically, you can check the [SDK guide](#vibellamamcpclient).
 
 **Example usage**
@@ -98,6 +100,8 @@ With `starter`, you can also launch a local MCP server (at http://127.0.0.1:8000
 vibe-llama starter # Launch a TUI
 vibe-llama starter -a 'GitHub Copilot' -s LlamaIndex -v # Select GitHub Copilot and LlamaIndex and enable verbose logging
 vibe-llama starter -a 'Claude Code' -s llama-index-workflows -w # Select Claude Code and llama-index-workflows and allow to overwrite the existing CLAUDE.md
+vibe-llama starter -a 'Claude Code' -s llama-index-workflows --skill "PDF Parsing" --skill "Llamactl Usage" -w # download skills
+vibe-llama stater  -a 'Claude Code' -s llama-index-workflows --allow_mcp_config --mcp_config_path .claude/mcp.json # download the MCP configuration
 vibe-llama starter --mcp # Launch an MCP server
 ```
 
