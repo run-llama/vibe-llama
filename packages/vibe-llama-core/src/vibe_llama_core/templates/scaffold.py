@@ -11,6 +11,10 @@ ProjectName = Literal[
     "invoice_extraction",
     "rag",
     "web_scraping",
+    "basic_ui",
+    "data_extraction",
+    "showcase",
+    "document_qa",
 ]
 
 # Expose a typed tuple of just the allowed names for convenience/choices
@@ -24,6 +28,10 @@ TEMPLATES: dict[ProjectName, str] = {
     "invoice_extraction": "gh:run-llama/template-workflow-invoice-extraction",
     "rag": "gh:run-llama/template-workflow-rag",
     "web_scraping": "gh:run-llama/template-workflow-web-scraping",
+    "basic_ui": "gh:run-llama/template-workflow-basic-ui",
+    "data_extraction": "gh:run-llama/template-workflow-data-extraction",
+    "document_qa": "gh:run-llama/template-workflow-document-qa",
+    "showcase": "gh:run-llama/template-workflow-showcase",
 }
 
 
