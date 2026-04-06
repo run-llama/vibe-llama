@@ -53,9 +53,9 @@ async def assess_document_complexity(
 
     # Limit to first 15 files to keep prompt manageable
     if len(file_info) > 15:
-        file_info = file_info[:15] + [f"... and {len(file_info) - 15} more files"]
-
-    files_str = "\n".join(file_info) if file_info else "No files found"
+        files_str = "\n".join(file_info[:15]) + f"\n... and {len(file_info) - 15} more files"
+    else:
+        files_str = "\n".join(file_info) if file_info else "No files found"
 
     complexity_prompt = """Analyze this document processing task and reference files to recommend LlamaParse and LlamaExtract configurations.
 
